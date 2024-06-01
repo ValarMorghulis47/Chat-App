@@ -12,7 +12,11 @@ const connectDB = async()=>{
     }
 }
 
+const emitEvent = (req, event, users, data)=>{
+    console.log(`Emitting event: ${event}`);
+}
 
 export{
-    connectDB
+    connectDB,
+    emitEvent
 }

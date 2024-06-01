@@ -4,6 +4,7 @@ import { connectDB } from './utils/features.js';
 import cookieParser from 'cookie-parser';
 // import { createUser } from './seeders/user.seeders.js';
 import userRouter from './routes/user.route.js';
+import chatRouter from './routes/chat.route.js';
 import { errorMiddleware } from './middlewares/error.middleware.js';
 
 
@@ -22,6 +23,7 @@ app.use(cookieParser());
 
 
 app.use('/api/v1/user', userRouter);
+app.use('/api/v1/chat', chatRouter);
 
 
 

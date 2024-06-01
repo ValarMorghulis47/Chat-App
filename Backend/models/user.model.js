@@ -33,15 +33,23 @@ const userSchema = new Schema({
     timestamps: true
 })
 
-const User = mongoose.model('User', userSchema);
 
-userSchema.pre('save', async function(next) {
-    if (!this.isModified('password')) {
-        next();
+// userSchema.pre('save', async function(next) {
+//     if (!this.isModified('password')) {
+//         next();
+//     }
+//     this.password = await bcrypt.hash(this.password, 12);
+//     next();
+// });
+userSchema.pre("save", async function (next) {
+    if (this.isModified("password")) {
+        this.password = await bcrypt.hash(this.password, 10)
+        next()
     }
-    this.password = await bcrypt.hash(this.password, 12);
-    next();
-});
+    else {
+        return next();
+    }
+})
 
 userSchema.methods.isPasswordCorrect = async function(password) {
     return await bcrypt.compare(password, this.password);
@@ -51,6 +59,5 @@ userSchema.methods.generateToken = function() {
     return jwt.sign({id: this._id}, process.env.JWT_SECRET, {expiresIn: '1h'});
 }
 
-
-export  {User};
+export const User = mongoose.model('User', userSchema);
 

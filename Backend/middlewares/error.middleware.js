@@ -1,11 +1,20 @@
 
 
 
-const errorMiddleware = (error, req, res, next) => {
-    const status = error.statusCode || 500;
-    const message = error.message;
-    return res.status(status).json({ message });
-};
+const errorMiddleware = (err, req, res, next) => {
+    err.message ||= "Internal Server Error";
+    err.statusCode ||= 500;
+  
+    // const response = {
+    //   success: false,
+    //   message: err.message,
+    // };
+  
+    return res.status(err.statusCode).json({
+      success: false,
+      message: err.message,
+    });
+  };
 
 const TryCatch = (controller) => async (req, res, next) => {
     try {

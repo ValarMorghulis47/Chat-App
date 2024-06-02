@@ -3,6 +3,7 @@ import { Chat } from '../models/chat.model.js';
 import { ErrorHandler } from "../utils/utility.js";
 import { emitEvent } from '../utils/features.js';
 import { ALERT, REFETCH_CHATS } from '../constants/events.js';
+import { User } from '../models/user.model.js';
 
 const newGroupChat = TryCatch(async (req, res, next) => {
     const { name, members } = req.body;
@@ -115,8 +116,82 @@ const getMyChats = TryCatch(async (req, res, next) => {
 });
 
 
+const getMyGroups = TryCatch(async (req, res, next) => {
+    const Groups = await Chat.aggregate(
+        [
+            {
+                $match: {
+                    creator: req.user._id,
+                    members: req.user._id,
+                    groupChat: true
+                }
+            },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "members",
+                    foreignField: "_id",
+                    as: "MemberDetails",
+                    pipeline: [
+                        {
+                            $project: {
+                                username: 1,
+                                avatar_url: 1
+                            }
+                        }
+                    ],
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    groupChat: 1,
+                    name: 1,
+                    avatar: {
+                        $slice: ["$MemberDetails.avatar_url", 3]
+                    }
+                }
+            }
+        ]
+    )
+    return res.status(200)
+        .json({
+            success: true,
+            message: "Groups Fetched Successfully",
+            data: Groups
+        })
+})
+
+const addMembers = TryCatch(async (req, res, next) => {
+    const { members, chatId } = req.body;
+    if (members.length < 1) return next(new ErrorHandler('Please provide members', 400));
+    const chat = await Chat.findById(chatId);
+    if (!chat) return next(new ErrorHandler('Chat not found', 404));
+    if (chat.creator.toString() !== req.user._id.toString()) return next(new ErrorHandler('You are not authorized to add members', 403));
+    // we have to check if the user is already in the group
+    const ExistMember = members.some(member => chat.members.includes(member));
+    if (ExistMember) return next(new ErrorHandler('Member already in the group', 400));
+    if (chat.members.length > 50) return next(new ErrorHandler('Group members limit reached', 400));
+    const newMembers = members.map((member_id) => User.findById(member_id, "username"));
+    const AllMembers = await Promise.all(newMembers);
+    chat.members.push(...AllMembers);
+    await chat.save();
+    const newMembersName = AllMembers.map(member => member.username).join(', ');
+    emitEvent(req, ALERT, chat.members, `${newMembersName} was added to the group`);
+    emitEvent(req, REFETCH_CHATS, chat.members);
+    return res.status(200)
+        .json({
+            success: true,
+            message: `${newMembersName} was added to the group`,
+            data: chat
+        })
+})
+
+
 
 export {
     newGroupChat,
-    getMyChats
+    getMyChats,
+    getMyGroups,
+    addMembers
 }

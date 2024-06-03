@@ -228,11 +228,43 @@ const removeMember = TryCatch(async (req, res, next) => {
         })
 });
 
+const leaveGroup = TryCatch(async (req, res, next) => {
+    const { chatId } = req.body;
+    const chat = await Chat.findById(chatId);
+
+    if (!chat)
+        return next(new ErrorHandler('Chat not found', 404));
+    if (!chat.members.includes(req.user._id))
+        return next(new ErrorHandler('You are not in the group', 400));
+    if (chat.members.length < 3)
+        return next(new ErrorHandler('Group must have at least 2 members', 400));
+
+    const remainingMembers = chat.members.filter(memberId => memberId.toString() !== req.user._id.toString());
+    if (chat.creator.toString() === req.user._id.toString()) {
+        const randomNumber = Math.floor(Math.random() * remainingMembers.length);
+        chat.creator = remainingMembers[randomNumber];
+    }
+
+    chat.members = remainingMembers;
+    await chat.save();
+
+    const user = await User.findById(req.user._id, "username");
+    emitEvent(req, ALERT, chat.members, { message: `${user.username} has left the group`, chatId });
+
+    return res.status(200)
+        .json({
+            success: true,
+            message: `${user.username} has left the group`,
+            data: chat
+        })
+});
+
 
 export {
     newGroupChat,
     getMyChats,
     getMyGroups,
     addMembers,
-    removeMember
+    removeMember,
+    leaveGroup
 }

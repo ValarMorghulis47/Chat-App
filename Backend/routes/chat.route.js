@@ -1,6 +1,6 @@
 import express from 'express';
 import { verfiyUser } from '../middlewares/auth.middleware.js';
-import { addMembers, getMyChats, getMyGroups, newGroupChat } from '../controllers/chat.controller.js';
+import { addMembers, getMyChats, getMyGroups, newGroupChat, removeMember } from '../controllers/chat.controller.js';
 
 const app = express.Router();
 
@@ -10,6 +10,6 @@ app.post('/newGroup', newGroupChat);
 app.get('/myChats', getMyChats);
 app.get('/myGroups', getMyGroups);
 app.put('/add', addMembers);
-
+app.delete('/remove', removeMember);
 
 export default app;

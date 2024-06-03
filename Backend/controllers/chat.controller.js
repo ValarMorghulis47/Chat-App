@@ -164,14 +164,22 @@ const getMyGroups = TryCatch(async (req, res, next) => {
 
 const addMembers = TryCatch(async (req, res, next) => {
     const { members, chatId } = req.body;
-    if (members.length < 1) return next(new ErrorHandler('Please provide members', 400));
+    if (members.length < 1)
+        return next(new ErrorHandler('Please provide members', 400));
     const chat = await Chat.findById(chatId);
-    if (!chat) return next(new ErrorHandler('Chat not found', 404));
-    if (chat.creator.toString() !== req.user._id.toString()) return next(new ErrorHandler('You are not authorized to add members', 403));
+    if (!chat)
+        return next(new ErrorHandler('Chat not found', 404));
+    if (chat.creator.toString() !== req.user._id.toString())
+        return next(new ErrorHandler('You are not authorized to add members', 403));
+
     // we have to check if the user is already in the group
     const ExistMember = members.some(member => chat.members.includes(member));
-    if (ExistMember) return next(new ErrorHandler('Member already in the group', 400));
-    if (chat.members.length > 50) return next(new ErrorHandler('Group members limit reached', 400));
+    if (ExistMember)
+        return next(new ErrorHandler('Member already in the group', 400));
+    if (chat.members.length > 50)
+        return next(new ErrorHandler('Group members limit reached', 400));
+
+
     const newMembers = members.map((member_id) => User.findById(member_id, "username"));
     const AllMembers = await Promise.all(newMembers);
     chat.members.push(...AllMembers);
@@ -187,11 +195,44 @@ const addMembers = TryCatch(async (req, res, next) => {
         })
 })
 
+const removeMember = TryCatch(async (req, res, next) => {
+    const { chatId, userId } = req.body;
+    const [chat, userThatWillBeRemoved] = await Promise.all([
+        Chat.findById(chatId),
+        User.findById(userId, "username")
+    ]);
+
+    if (!chat)
+        return next(new ErrorHandler('Chat not found', 404));
+    if (!userThatWillBeRemoved)
+        return next(new ErrorHandler('User not found', 404));
+    if (chat.creator.toString() !== req.user._id.toString())
+        return next(new ErrorHandler('You are not authorized to remove members', 403));
+    if (chat.creator.toString() === userId)
+        return next(new ErrorHandler('You cannot remove yourself', 400));
+    if (!chat.members.includes(userId))
+        return next(new ErrorHandler('User not in the group', 400));
+    if (chat.members.length < 3)
+        return next(new ErrorHandler('Group must have at least 2 members', 400));
+    const allMembers = chat.members.map(member => member.toString());   //Getting all the id's of the members because later we will fetch chats for all members
+    chat.members = chat.members.filter(member => member.toString() !== userId);
+    await chat.save();
+
+    emitEvent(req, ALERT, chat.members, { message: `${userThatWillBeRemoved.username} was removed from the group`, chatId });
+    emitEvent(req, REFETCH_CHATS, allMembers);
+    return res.status(200)
+        .json({
+            success: true,
+            message: `${userThatWillBeRemoved.username} was removed from the group`,
+            data: chat
+        })
+});
 
 
 export {
     newGroupChat,
     getMyChats,
     getMyGroups,
-    addMembers
+    addMembers,
+    removeMember
 }

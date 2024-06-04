@@ -19,6 +19,7 @@ connectDB();
 // createUser(10); // Uncomment this line to seed the database with 10 fake users
 // createSingleChats(2); // Uncomment this line to seed the database with 1 single chats
 // createMessagesInAChat("665c1599ab2bf0c6476b51bf", 50); // Uncomment this line to seed the database with 50 messages in a specific chat
+// createMessagesInAChat("665b65f54ad0534542e524a0", 5);
 
 const app = express();
 app.use(express.json());

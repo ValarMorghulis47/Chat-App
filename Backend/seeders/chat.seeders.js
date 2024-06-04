@@ -115,6 +115,10 @@ const createMessagesInAChat = async (chatId, numMessages) => {
           chat: chatId,
           sender: randomUser,
           content: faker.lorem.sentence(),
+          attachments: [{
+            public_id: faker.random.alphaNumeric(10),
+            url: faker.image.imageUrl(640, 480, "animals", true, true)
+          }]
         })
       );
     }

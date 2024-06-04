@@ -55,71 +55,71 @@ const newGroupChat = TryCatch(async (req, res, next) => {
 const getMyChats = TryCatch(async (req, res, next) => {
     const chats = await Chat.aggregate([
         {
-          $match: {
-            members: req.user._id
-          },
-        },
-        {
-          $lookup: {
-            from: "users",
-            localField: "members",
-            foreignField: "_id",
-            as: "Details",
-            pipeline: [
-              {
-                $project: {
-                  username: 1,
-                  avatar_url: 1,
-                },
-              },
-            ],
-          },
-        },
-        {
-          $project: {
-            _id: 1,
-            groupChat: 1,
-            avatar: {
-              $cond: {
-                if: "$groupChat",
-                then: {
-                  $slice: ["$Details.avatar_url", 3],
-                },
-                else: {
-                  $arrayElemAt: [
-                    "$Details.avatar_url",
-                    0,
-                  ],
-                },
-              },
+            $match: {
+                members: req.user._id
             },
-            members:{
-              $map: {
-                input: {
-                  $filter: {
-                    input: "$members",
-                    as: "memberid",
-                    cond: {
-                      $ne: ["$$memberid", req.user._id]
+        },
+        {
+            $lookup: {
+                from: "users",
+                localField: "members",
+                foreignField: "_id",
+                as: "Details",
+                pipeline: [
+                    {
+                        $project: {
+                            username: 1,
+                            avatar_url: 1,
+                        },
+                    },
+                ],
+            },
+        },
+        {
+            $project: {
+                _id: 1,
+                groupChat: 1,
+                avatar: {
+                    $cond: {
+                        if: "$groupChat",
+                        then: {
+                            $slice: ["$Details.avatar_url", 3],
+                        },
+                        else: {
+                            $arrayElemAt: [
+                                "$Details.avatar_url",
+                                0,
+                            ],
+                        },
+                    },
+                },
+                members: {
+                    $map: {
+                        input: {
+                            $filter: {
+                                input: "$members",
+                                as: "memberid",
+                                cond: {
+                                    $ne: ["$$memberid", req.user._id]
+                                }
+                            }
+                        },
+                        as: "memberid",
+                        in: "$$memberid"
+                    },
+                },
+                name: {
+                    $cond: {
+                        if: "$groupChat",
+                        then: "$name",
+                        else: {
+                            $arrayElemAt: ["$Details.username", 0]
+                        }
                     }
-                  }
-                },
-                as: "memberid",
-                in: "$$memberid"
-              },
-            },
-            name: {
-                $cond: {
-                  if: "$groupChat",
-                  then: "$name",
-                  else: {
-                    $arrayElemAt: ["$Details.username", 0]
-                  }
                 }
-              }
-          },
+            },
         },
-      ]);
+    ]);
 
     return res.status(200)
         .json({
@@ -277,20 +277,20 @@ const sendAttachements = TryCatch(async (req, res, next) => {
     console.log(req.files);
 
     const [chat, user] = await Promise.all([
-        Chat.findById(chatId), 
+        Chat.findById(chatId),
         User.findById(req.user._id)
     ])
 
-    if(!chat) 
+    if (!chat)
         return next(new ErrorHandler('Chat not found', 404));
-    if(!req.files || req.files.length === 0) 
+    if (!req.files || req.files.length === 0)
         return next(new ErrorHandler('Please provide attachments', 400));
-    if(req.files.length > 5)
+    if (req.files.length > 5)
         return next(new ErrorHandler('You can send up to 5 attachments', 400));
-    
+
     const files = req.files || [];
     // Files will be uploaded to clodinary
-    const attachments = [];
+    const attachments = [];     // will use uploadFilesCloudinary function to upload files to cloudinary
 
     const message = await Message.create({
         content: "",
@@ -298,7 +298,7 @@ const sendAttachements = TryCatch(async (req, res, next) => {
         sender: user._id,
         chat: chatId
     });
-    if(!message)
+    if (!message)
         return next(new ErrorHandler('Message could not be sent', 400));
 
     const messageForRealTime = {
@@ -315,7 +315,7 @@ const sendAttachements = TryCatch(async (req, res, next) => {
         message: messageForRealTime,
         chatId
     });
-    emitEvent(req, NEW_MESSAGE_ALERT, chat.members, {chatId});
+    emitEvent(req, NEW_MESSAGE_ALERT, chat.members, { chatId });
 
     return res.status(200).json({
         succes: true,
@@ -330,14 +330,74 @@ const getChatDetails = TryCatch(async (req, res, next) => {
     const chat = await Chat.findById(chatId).populate('members', 'username avatar_url');
     if (!chat)
         return next(new ErrorHandler('Chat not found', 404));
-    
+
     return res.status(200).json({
         success: true,
         message: "Chat details fetched successfully",
         data: chat
     });
-})
+});
 
+const renameGroup = TryCatch(async (req, res, next) => {
+    const { chatId } = req.params;
+    const { name } = req.body;
+
+    const chat = await Chat.findById(chatId);
+    if (!chat)
+        return next(new ErrorHandler('Chat not found', 404));
+    if (chat.creator.toString() !== req.user._id.toString())
+        return next(new ErrorHandler('You are not authorized to rename the group', 403));
+    if (!name)
+        return next(new ErrorHandler('Please provide a name', 400));
+
+    chat.name = name;
+    await chat.save();
+
+    emitEvent(req, ALERT, chat.members, `Group name changed to ${name}`);
+    emitEvent(req, REFETCH_CHATS, chat.members)
+
+    return res.status(200).json({
+        success: true,
+        message: "Group name changed successfully",
+        data: chat
+    });
+});
+
+const deleteGroup = TryCatch(async (req, res, next) => {
+    const { chatId } = req.params;
+
+    const chat = await Chat.findById(chatId);
+    if (!chat)
+        return next(new ErrorHandler('Chat not found', 404));
+    if (chat.creator.toString() !== req.user._id.toString())
+        return next(new ErrorHandler('You are not authorized to delete the group', 403));
+
+    const memmbers = chat.members;
+
+    const messagesWithAttachements = await Message.find({
+        chat: chatId,
+        attachments: { $ne: [] }
+    });
+    const public_ids = [];
+    messagesWithAttachements.forEach(message => {       // we didn't used map because then we would have to return something
+        message.attachments.forEach(avatar =>{
+            public_ids.push(avatar.public_id);
+        })
+    });
+
+    await Promise.all([
+        // deleteFilesCloudinary(public_ids),  // we will make this function later
+        chat.deleteOne(),
+        Message.deleteMany({ chat: chatId })
+    ])
+
+    emitEvent(req, REFETCH_CHATS, memmbers); // didn't used chat.members because chat is already deleted and didn't need to notify the members
+
+    return res.status(200).json({
+        success: true,
+        message: "Group deleted successfully"
+    });
+})
 
 export {
     newGroupChat,
@@ -347,5 +407,7 @@ export {
     removeMember,
     leaveGroup,
     sendAttachements,
-    getChatDetails
+    getChatDetails,
+    renameGroup,
+    deleteGroup
 }

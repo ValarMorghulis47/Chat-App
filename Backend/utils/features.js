@@ -16,7 +16,12 @@ const emitEvent = (req, event, users, data)=>{
     console.log(`Emitting event: ${event}`);
 }
 
+const UploadFilesCloudinary = async (files) => {
+    console.log("Uploading files to cloudinary");
+}
+
 export{
     connectDB,
-    emitEvent
+    emitEvent,
+    UploadFilesCloudinary
 }

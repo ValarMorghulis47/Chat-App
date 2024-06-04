@@ -1,9 +1,10 @@
 import { TryCatch } from '../middlewares/error.middleware.js';
 import { Chat } from '../models/chat.model.js';
 import { ErrorHandler } from "../utils/utility.js";
-import { emitEvent } from '../utils/features.js';
-import { ALERT, REFETCH_CHATS } from '../constants/events.js';
+import { UploadFilesCloudinary, emitEvent } from '../utils/features.js';
+import { ALERT, NEW_MESSAGE, NEW_MESSAGE_ALERT, REFETCH_CHATS } from '../constants/events.js';
 import { User } from '../models/user.model.js';
+import { Message } from '../models/message.model.js';
 
 const newGroupChat = TryCatch(async (req, res, next) => {
     const { name, members } = req.body;
@@ -271,6 +272,59 @@ const leaveGroup = TryCatch(async (req, res, next) => {
         })
 });
 
+const sendAttachements = TryCatch(async (req, res, next) => {
+    const { chatId } = req.body;
+    console.log(req.files);
+
+    const [chat, user] = await Promise.all([
+        Chat.findById(chatId), 
+        User.findById(req.user._id)
+    ])
+
+    if(!chat) 
+        return next(new ErrorHandler('Chat not found', 404));
+    if(!req.files || req.files.length === 0) 
+        return next(new ErrorHandler('Please provide attachments', 400));
+    if(req.files.length > 5)
+        return next(new ErrorHandler('You can send up to 5 attachments', 400));
+    
+    const files = req.files || [];
+    // Files will be uploaded to clodinary
+    const attachments = [];
+
+    const message = await Message.create({
+        content: "",
+        attachments,
+        sender: user._id,
+        chat: chatId
+    });
+    if(!message)
+        return next(new ErrorHandler('Message could not be sent', 400));
+
+    const messageForRealTime = {
+        content: '',
+        attachments,
+        sender: {
+            _id: user._id,
+            username: user.username,
+            avatar_url: user.avatar_url
+        },
+        chat: chatId,
+    }
+    emitEvent(req, NEW_MESSAGE, chat.members, {
+        message: messageForRealTime,
+        chatId
+    });
+    emitEvent(req, NEW_MESSAGE_ALERT, chat.members, {chatId});
+
+    return res.status(200).json({
+        succes: true,
+        message: "Attachments sent successfully",
+        data: message
+    });
+
+});
+
 
 export {
     newGroupChat,
@@ -278,5 +332,6 @@ export {
     getMyGroups,
     addMembers,
     removeMember,
-    leaveGroup
+    leaveGroup,
+    sendAttachements
 }

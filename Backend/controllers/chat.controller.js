@@ -128,7 +128,6 @@ const getMyChats = TryCatch(async (req, res, next) => {
         })
 });
 
-
 const getMyGroups = TryCatch(async (req, res, next) => {
     const Groups = await Chat.aggregate(
         [

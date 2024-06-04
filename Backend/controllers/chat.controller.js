@@ -325,6 +325,19 @@ const sendAttachements = TryCatch(async (req, res, next) => {
 
 });
 
+const getChatDetails = TryCatch(async (req, res, next) => {
+    const { chatId } = req.params;
+    const chat = await Chat.findById(chatId).populate('members', 'username avatar_url');
+    if (!chat)
+        return next(new ErrorHandler('Chat not found', 404));
+    
+    return res.status(200).json({
+        success: true,
+        message: "Chat details fetched successfully",
+        data: chat
+    });
+})
+
 
 export {
     newGroupChat,
@@ -333,5 +346,6 @@ export {
     addMembers,
     removeMember,
     leaveGroup,
-    sendAttachements
+    sendAttachements,
+    getChatDetails
 }

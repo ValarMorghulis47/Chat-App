@@ -54,58 +54,71 @@ const newGroupChat = TryCatch(async (req, res, next) => {
 const getMyChats = TryCatch(async (req, res, next) => {
     const chats = await Chat.aggregate([
         {
-            $match: { members: req.user._id }
+          $match: {
+            members: req.user._id
+          },
         },
         {
-            $lookup: {
-                from: "users",
-                localField: "members",
-                foreignField: "_id",
-                as: "members",
-                pipeline: [
-                    {
-                        $project: {
-                            username: 1,
-                            avatar_url: 1
-                        }
-                    }
-                ]
-            }
+          $lookup: {
+            from: "users",
+            localField: "members",
+            foreignField: "_id",
+            as: "Details",
+            pipeline: [
+              {
+                $project: {
+                  username: 1,
+                  avatar_url: 1,
+                },
+              },
+            ],
+          },
         },
         {
-            $project: {
-                _id: 1,
-                groupChat: 1,
-                avatar: {
-                    $cond: {
-                        if: "$groupChat",
-                        then: { $slice: ["$members.avatar_url", 3] },
-                        else: { $arrayElemAt: ["$members.avatar_url", 0] }
-                    }
+          $project: {
+            _id: 1,
+            groupChat: 1,
+            avatar: {
+              $cond: {
+                if: "$groupChat",
+                then: {
+                  $slice: ["$Details.avatar_url", 3],
                 },
-                name: {
-                    $cond: {
-                        if: "$groupChat",
-                        then: "$name",
-                        else: { $arrayElemAt: ["$members.username", 0] }
-                    }
+                else: {
+                  $arrayElemAt: [
+                    "$Details.avatar_url",
+                    0,
+                  ],
                 },
-                members: {
-                    $map: {
-                        input: {
-                            $filter: {
-                                input: "$members",
-                                as: "member",
-                                cond: { $ne: ["$$member._id", req.user._id] }
-                            }
-                        },
-                        as: "member",
-                        in: "$$member._id"
+              },
+            },
+            members:{
+              $map: {
+                input: {
+                  $filter: {
+                    input: "$members",
+                    as: "memberid",
+                    cond: {
+                      $ne: ["$$memberid", req.user._id]
                     }
+                  }
+                },
+                as: "memberid",
+                in: "$$memberid"
+              },
+            },
+            name: {
+                $cond: {
+                  if: "$groupChat",
+                  then: "$name",
+                  else: {
+                    $arrayElemAt: ["$Details.username", 0]
+                  }
                 }
-            }
-        }
-    ]);
+              }
+          },
+        },
+      ]);
 
     return res.status(200)
         .json({

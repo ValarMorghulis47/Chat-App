@@ -1,4 +1,5 @@
 import { TryCatch } from "../middlewares/error.middleware.js";
+import { Chat } from "../models/chat.model.js";
 import { User } from "../models/user.model.js"
 import { ErrorHandler } from "../utils/utility.js";
 
@@ -47,14 +48,34 @@ const logoutUser = TryCatch(async (req, res, next) => {
         ({ success: true, message: "Logged Out Successfully" })
 })
 
-const getMyProfile = TryCatch(async (req, res, next)=>{
+const getMyProfile = TryCatch(async (req, res, next) => {
     return res.status(200)
-    .json({success: true, message: "Profile Fetched Successfully", user: req.user});
+        .json({ success: true, message: "Profile Fetched Successfully", user: req.user });
+})
+
+const searchUser = TryCatch(async (req, res, next) => {
+    let { username = "" } = req.query;
+    username = username.replace(/['"]/g, ""); // Remove any quotes
+    const myChats = await Chat.find({ groupChat: false, members: req.user._id });
+    const allMembersIds = myChats.flatMap((chat) => chat.members);  // flatMap is used to flatten the array of arrays into a single array  
+
+    const user = await User.find({
+        _id: { $nin: allMembersIds },
+        username: { $regex: username, $options: "i" }
+    }).select("username avatar_url");
+
+    return res.status(200)
+        .json({
+            success: true,
+            message: "Users Fetched Successfully",
+            users: user
+        });
 })
 
 export {
     registerUser,
     loginUser,
     logoutUser,
-    getMyProfile
+    getMyProfile,
+    searchUser
 }

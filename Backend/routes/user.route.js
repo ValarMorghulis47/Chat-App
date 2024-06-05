@@ -1,5 +1,5 @@
 import express from 'express';
-import { getMyProfile, loginUser, logoutUser, registerUser } from '../controllers/user.controller.js';
+import { getMyProfile, loginUser, logoutUser, registerUser, searchUser } from '../controllers/user.controller.js';
 import { verfiyUser } from '../middlewares/auth.middleware.js';
 import { singleUpload } from '../middlewares/multer.middleware.js';
 
@@ -12,7 +12,8 @@ app.post('/login', loginUser);
 app.use(verfiyUser);
 
 app.get('/logout', logoutUser);
-app.get('/profile', getMyProfile)
+app.get('/profile', getMyProfile);
+app.get('/search', searchUser);
 
 export default app;
 

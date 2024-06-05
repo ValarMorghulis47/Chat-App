@@ -4,7 +4,7 @@ import { Request } from "../models/request.model.js";
 import { User } from "../models/user.model.js"
 import { ErrorHandler } from "../utils/utility.js";
 import { emitEvent } from "../utils/features.js";
-import { NEW_REQUEST } from "../constants/events.js";
+import { NEW_REQUEST, REFETCH_CHATS } from "../constants/events.js";
 
 
 const generateToken = async (userId) => {
@@ -100,11 +100,49 @@ const sendFriendRequest = TryCatch(async (req, res, next) => {
     emitEvent(req, NEW_REQUEST, [receiverId]);
 
     return res.status(200).
-    json({
-        success: true,
-        message: "Request Sent Successfully",
-        request: newRequest
-    })
+        json({
+            success: true,
+            message: "Request Sent Successfully",
+            request: newRequest
+        })
+});
+
+const acceptRejectRequest = TryCatch(async (req, res, next) => {
+    const { requestId, accpet } = req.body;  // acction will be either accept or reject or true or false and it will come from the button click
+
+    const request = await Request.findById(requestId).populate("sender", "username avatar_url").populate("receiver", "username avatar_url");
+    if (!request)
+        return next(new ErrorHandler("Request not found", 404));
+    if (request.receiver._id.toString() !== req.user._id.toString())
+        return next(new ErrorHandler("You are not authorized to perform this action", 401));
+
+    if (accpet) {
+        const members = [request.sender._id, request.receiver._id];
+        await Promise.all([
+            Chat.create({
+                members,
+                name: request.sender.username
+            }),
+            request.deleteOne()
+        ]);
+
+        emitEvent(req, REFETCH_CHATS, members);
+
+        return res.status(200)
+            .json({
+                success: true,
+                message: "Friend Request Accepted Successfully",
+                senderId: request.sender._id,
+            });
+    }
+
+    await request.deleteOne();
+    return res.status(200)
+        .json({
+            success: true,
+            message: "Friend Request Rejected Successfully",
+        });
+
 });
 
 export {
@@ -113,5 +151,6 @@ export {
     logoutUser,
     getMyProfile,
     searchUser,
-    sendFriendRequest
+    sendFriendRequest,
+    acceptRejectRequest
 }

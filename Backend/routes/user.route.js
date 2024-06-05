@@ -1,5 +1,5 @@
 import express from 'express';
-import { getMyProfile, loginUser, logoutUser, registerUser, searchUser, sendFriendRequest } from '../controllers/user.controller.js';
+import { acceptRejectRequest, getMyProfile, loginUser, logoutUser, registerUser, searchUser, sendFriendRequest } from '../controllers/user.controller.js';
 import { verfiyUser } from '../middlewares/auth.middleware.js';
 import { singleUpload } from '../middlewares/multer.middleware.js';
 
@@ -15,6 +15,7 @@ app.get('/logout', logoutUser);
 app.get('/profile', getMyProfile);
 app.get('/search', searchUser);
 app.put('/sendFriend', sendFriendRequest);
+app.put('/acceptRejectFriend', acceptRejectRequest);
 
 
 export default app;

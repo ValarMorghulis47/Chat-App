@@ -3,7 +3,7 @@ import { TryCatch } from "../middlewares/error.middleware.js";
 import { ErrorHandler } from "../utils/utility.js";
 import { User } from "../models/user.model.js";
 import { Chat } from "../models/chat.model.js";
-
+import { Message } from "../models/message.model.js";
 
 const adminLogin = TryCatch(async (req, res, next) => {
     const { secretKey } = req.body;
@@ -143,11 +143,80 @@ const getAllChats = TryCatch(async (req, res, next) => {
         });
 });
 
+const getAllMessages = TryCatch(async (req, res, next) => {
+    const messages = await Message.aggregate([
+        {
+          $match: {},
+        },
+        {
+          $lookup: {
+            from: "chats",
+            localField: "chat",
+            foreignField: "_id",
+            as: "Details",
+            pipeline: [
+              {
+                $project: {
+                  groupChat: 1,
+                },
+              },
+            ],
+          },
+        },
+        {
+          $lookup: {
+            from: "users",
+            localField: "sender",
+            foreignField: "_id",
+            as: "details",
+            pipeline: [
+              {
+                $project: {
+                  username: 1,
+                  avatar_url:1
+                },
+              },
+            ],
+          },
+        },
+        {
+          $addFields: {
+            ChatDetails: {
+              $arrayElemAt: ["$Details", 0]
+            },
+            SenderDetails: {
+              $arrayElemAt: ["$details", 0]
+            },
+            Attachments: {
+              $arrayElemAt: ["$attachments", 0]
+            }
+          }
+        },
+        {
+          $project: {
+            _id:1,
+            Attachments:1,
+            content:1,
+            createdAt:1,
+            ChatDetails:1,
+            SenderDetails:1
+          }
+        }
+      ]);
+
+    return res.status(200)
+        .json({
+            success: true,
+            data: messages
+        });
+
+});
 
 export {
     adminLogin,
     adminLogout,
     checkAdmin,
     getAllUsers,
-    getAllChats
+    getAllChats,
+    getAllMessages
 }

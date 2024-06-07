@@ -153,7 +153,77 @@ const getNotifications = TryCatch(async (req, res, next) => {
             message: "Notifications Fetched Successfully",
             requests
         });
-})
+});
+
+const getMyFriends = TryCatch(async (req, res, next) => {
+    const { chatId } = req.query;
+
+    const friends = await Chat.aggregate([
+        {
+            $match: {
+                groupChat: false,
+                members: req.user._id,
+            },
+        },
+        {
+            $lookup: {
+                from: "users",
+                localField: "members",
+                foreignField: "_id",
+                as: "OtherMembers",
+                pipeline: [
+                    {
+                        $project: {
+                            username: 1,
+                            avatar_url: 1,
+                        },
+                    },
+                ],
+            },
+        },
+        {
+            $addFields: {
+                "othermember": {
+                    $filter: {
+                        input: "$OtherMembers",
+                        as: "mem",
+                        cond: {
+                            $ne: ["$$mem._id", req.user._id]
+                        }
+                    }
+                }
+            }
+        },
+        {
+            $project: {
+                onemore: {
+                    $arrayElemAt: ["$othermember", 0]
+                }
+            }
+        }
+    ]);
+
+    if (chatId) {
+        const chat = await Chat.findById(chatId);
+        const otherFriends = friends.filter(friend => !chat.members.includes(friend.onemore._id));
+
+        return res.status(200)
+            .json({
+                success: true,
+                message: "Friends Fetched Successfully",
+                friends: otherFriends
+            });
+    }
+
+    return res.status(200)
+        .json({
+            success: true,
+            message: "Friends Fetched Successfully",
+            friends: friends
+        });
+
+
+});
 
 export {
     registerUser,
@@ -163,5 +233,6 @@ export {
     searchUser,
     sendFriendRequest,
     acceptRejectRequest,
-    getNotifications
+    getNotifications,
+    getMyFriends
 }

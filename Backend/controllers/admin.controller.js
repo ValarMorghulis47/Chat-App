@@ -68,10 +68,86 @@ const getAllUsers = TryCatch(async (req, res, next) => {
         });
 });
 
+const getAllChats = TryCatch(async (req, res, next) => {
+    const chats = await Chat.aggregate([
+        {
+            $match: {},
+        },
+        {
+            $lookup: {
+                from: "users",
+                localField: "members",
+                foreignField: "_id",
+                as: "MemberDetails",
+                pipeline: [
+                    {
+                        $project: {
+                            username: 1,
+                            avatar_url: 1,
+                        },
+                    },
+                ],
+            },
+        },
+        {
+            $lookup: {
+                from: "users",
+                localField: "creator",
+                foreignField: "_id",
+                as: "CreatorData",
+                pipeline: [
+                    {
+                        $project: {
+                            username: 1,
+                            avatar_url: 1,
+                        },
+                    },
+                ],
+            },
+        },
+        {
+            $lookup: {
+                from: "messages",
+                localField: "_id",
+                foreignField: "chat",
+                as: "TotalMessages",
+            },
+        },
+        {
+            $addFields: {
+                TotalMessages: { $size: "$TotalMessages" },
+                CreatorDetails: { $arrayElemAt: ["$CreatorData", 0] },
+                TotalMembers: { $size: "$MemberDetails" }
+            },
+        },
+        {
+            $project: {
+                _id: 1,
+                name: 1,
+                groupChat: 1,
+                TotalMessages: 1,
+                CreatorDetails: 1,
+                MemberDetails: 1,
+                avatars: {
+                    $slice: ["$MemberDetails.avatar_url", 3]
+                },
+                TotalMembers: 1
+            }
+        }
+    ]);
+
+    return res.status(200)
+        .json({
+            success: true,
+            data: chats
+        });
+});
+
 
 export {
     adminLogin,
     adminLogout,
     checkAdmin,
-    getAllUsers
+    getAllUsers,
+    getAllChats
 }

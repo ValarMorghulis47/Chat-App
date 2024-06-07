@@ -145,6 +145,16 @@ const acceptRejectRequest = TryCatch(async (req, res, next) => {
 
 });
 
+const getNotifications = TryCatch(async (req, res, next) => {
+    const requests = await Request.find({ receiver: req.user._id }).populate("sender", "username avatar_url");
+    return res.status(200)
+        .json({
+            success: true,
+            message: "Notifications Fetched Successfully",
+            requests
+        });
+})
+
 export {
     registerUser,
     loginUser,
@@ -152,5 +162,6 @@ export {
     getMyProfile,
     searchUser,
     sendFriendRequest,
-    acceptRejectRequest
+    acceptRejectRequest,
+    getNotifications
 }

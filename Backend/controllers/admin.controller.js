@@ -1,7 +1,8 @@
 import jwt from "jsonwebtoken";
 import { TryCatch } from "../middlewares/error.middleware.js";
 import { ErrorHandler } from "../utils/utility.js";
-
+import { User } from "../models/user.model.js";
+import { Chat } from "../models/chat.model.js";
 
 
 const adminLogin = TryCatch(async (req, res, next) => {
@@ -40,15 +41,37 @@ const adminLogout = TryCatch(async (req, res, next) => {
 
 const checkAdmin = TryCatch(async (req, res, next) => {
     return res.status(200)
-    .json({ 
-        success: true, 
-        message: "Admin Authenticated"
-    });
+        .json({
+            success: true,
+            message: "Admin Authenticated"
+        });
 })
+
+const getAllUsers = TryCatch(async (req, res, next) => {
+    const users = await User.find();
+    const completeUsers = await Promise.all(users.map(async (user) => {
+        const [totalFriends, totalGroups] = await Promise.all([
+            Chat.countDocuments({ groupChat: false, members: user._id }),
+            Chat.countDocuments({ groupChat: true, members: user._id })
+        ])
+        return {
+            user,
+            totalFriends,
+            totalGroups
+        }
+    }))
+
+    return res.status(200)
+        .json({
+            success: true,
+            data: completeUsers
+        });
+});
 
 
 export {
     adminLogin,
     adminLogout,
-    checkAdmin
+    checkAdmin,
+    getAllUsers
 }

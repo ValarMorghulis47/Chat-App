@@ -21,13 +21,12 @@ const verfiyUser = TryCatch(async (req, res, next) => {
 
 const adminOnly = (req, res, next) => {
     const token = req.cookies["JWT-Admin-Token"];
-  
     if (!token)
       return next(new ErrorHandler("Only Admin can access this route", 401));
   
     const secretKey = jwt.verify(token, process.env.JWT_SECRET);
-  
-    const isMatched = secretKey === process.env.ADMIN_SECRET_KEY;
+    // console.log(secretKey);
+    const isMatched = secretKey.secretKey === process.env.ADMIN_SECRET_KEY;
   
     if (!isMatched)
       return next(new ErrorHandler("Only Admin can access this route", 401));

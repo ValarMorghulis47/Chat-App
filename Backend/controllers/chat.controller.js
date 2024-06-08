@@ -189,7 +189,7 @@ const addMembers = TryCatch(async (req, res, next) => {
     const ExistMember = members.some(member => chat.members.includes(member));
     if (ExistMember)
         return next(new ErrorHandler('Member already in the group', 400));
-    if (chat.members.length > 50)
+    if (chat.members.length > 100)
         return next(new ErrorHandler('Group members limit reached', 400));
 
 
@@ -432,7 +432,7 @@ const getMessages = TryCatch(async (req, res, next) => {
       messages: messages.reverse(),
       totalPages,
     });
-  });
+});
 
 export {
     newGroupChat,

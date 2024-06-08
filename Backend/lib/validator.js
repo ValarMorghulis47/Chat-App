@@ -4,7 +4,6 @@ import { ErrorHandler } from "../utils/utility.js";
 
 const validateHandler = (req, res, next) => {
     const errors = validationResult(req);
-    console.log(errors);
     const errorMessages = errors
         .array()
         .map((error) => error.msg)

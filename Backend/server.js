@@ -1,5 +1,6 @@
 import dotenv from 'dotenv';
 import express from 'express';
+import { createServer } from 'http';
 import { connectDB } from './utils/features.js';
 import cookieParser from 'cookie-parser';
 // import { createUser } from './seeders/user.seeders.js';
@@ -7,8 +8,13 @@ import userRouter from './routes/user.route.js';
 import chatRouter from './routes/chat.route.js';
 import adminRouter from './routes/admin.route.js';
 import { errorMiddleware } from './middlewares/error.middleware.js';
+import { Server } from 'socket.io';
+import { NEW_MESSAGE, NEW_MESSAGE_ALERT } from './constants/events.js';
+import { v4 as uuid } from 'uuid';
+import { getSockets } from './lib/helper.js';
+import { Message } from './models/message.model.js';
 // import { createMessagesInAChat, createSingleChats } from './seeders/chat.seeders.js';
-
+const userSocketIDs = new Map();  // This will contain the socket id of the user and the user id
 
 
 dotenv.config({
@@ -23,6 +29,8 @@ connectDB();
 // createMessagesInAChat("665b65f54ad0534542e524a0", 5);
 
 const app = express();
+const server = createServer(app);
+const io = new Server(server, {});
 app.use(express.json());
 app.use(cookieParser());
 
@@ -31,8 +39,61 @@ app.use('/api/v1/user', userRouter);
 app.use('/api/v1/chat', chatRouter);
 app.use('/api/v1/admin', adminRouter);
 
+// io.use((socket, next) => { });
+
+io.on('connection', (socket) => {
+    const user = {                                 // This is a fake user object, we will get the user from the above io.use middleware
+        _id: "1234",
+        name: "John Doe",
+        avatar_url: "https://www.google.com"
+    }
+    userSocketIDs.set(user._id.toString(), socket.id);
+
+    socket.on(NEW_MESSAGE, async ({ chatId, members, message }) => {
+        const messageForRealTime = {
+            content: message,
+            _id: uuid(),
+            sender: {
+                _id: user._id,
+                name: user.name,
+                avatar_url: user.avatar_url,
+            },
+            chat: chatId,
+            createdAt: new Date().toISOString(),
+        };
+
+        const messageForDB = {
+            content: message,
+            sender: user._id,
+            chat: chatId,
+        };
+
+        const membersSocket = getSockets(members);
+        io.to(membersSocket).emit(NEW_MESSAGE, {
+            chatId,
+            message: messageForRealTime,
+        });
+        io.to(membersSocket).emit(NEW_MESSAGE_ALERT, { chatId });
+        try {
+            await Message.create(messageForDB);
+        } catch (error) {
+            throw new Error(error);
+        }
+    });
+
+
+    socket.on('disconnect', () => {
+        userSocketIDs.delete(user._id.toString());
+        console.log('user disconnected', socket.id);
+    });
+});
+
 
 app.use(errorMiddleware);
-app.listen(PORT, () => {
+server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
+
+export {
+    userSocketIDs
+};

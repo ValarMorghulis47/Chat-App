@@ -14,14 +14,14 @@ const VisuallyHiddenInput = styled("input")({
   width: 1,
 });
 
-// const Link = styled(LinkComponent)`
-//   text-decoration: none;
-//   color: black;
-//   padding: 1rem;
-//   &:hover {
-//     background-color: rgba(0, 0, 0, 0.1);
-//   }
-// `;
+const Link = styled(LinkComponent)`
+  text-decoration: none;
+  color: black;
+  padding: 1rem;
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+  }
+`;
 
 // const InputBox = styled("input")`
 //   width: 100%;
@@ -71,7 +71,7 @@ export {
 //   CurveButton,
 //   SearchField,
 //   InputBox,
-//   Link,
+  Link,
   VisuallyHiddenInput,
 //   BouncingSkeleton,
 };

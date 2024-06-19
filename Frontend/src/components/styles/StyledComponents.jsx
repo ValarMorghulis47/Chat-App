@@ -1,5 +1,6 @@
 import { Skeleton, keyframes, styled } from "@mui/material";
 import { Link as LinkComponent } from "react-router-dom";
+import { grayColor } from "../../constants/color";
 // import { grayColor, matBlack } from "../../constants/color";
 
 const VisuallyHiddenInput = styled("input")({
@@ -23,15 +24,15 @@ const Link = styled(LinkComponent)`
   }
 `;
 
-// const InputBox = styled("input")`
-//   width: 100%;
-//   height: 100%;
-//   border: none;
-//   outline: none;
-//   padding: 0 3rem;
-//   border-radius: 1.5rem;
-//   background-color: ${grayColor};
-// `;
+const InputBox = styled("input")`
+  width: 100%;
+  height: 100%;
+  border: none;
+  outline: none;
+  padding: 0 3rem;
+  border-radius: 1.5rem;
+  background-color: ${grayColor};
+`;
 
 // const SearchField = styled("input")`
 //   padding: 1rem 2rem;
@@ -70,7 +71,7 @@ const Link = styled(LinkComponent)`
 export {
 //   CurveButton,
 //   SearchField,
-//   InputBox,
+  InputBox,
   Link,
   VisuallyHiddenInput,
 //   BouncingSkeleton,

@@ -9,11 +9,18 @@ import { grayColor, orange } from '../constants/color';
 import { InputBox } from "../components/styles/StyledComponents";
 import { useState } from "react";
 import FileMenu from "../components/dialogue/FileMenu";
+import { sampleMessage } from "../constants/sampleData";
+import MessageComponent from "../components/shared/MessageComponent";
 
 function Chat() {
 
   const containerRef = useRef(null);
   const [fileMenuAnchor, setFileMenuAnchor] = useState(null);
+
+  const user = {
+    _id: "1",
+    name: "Chaman",
+  }
 
   return (
     <Fragment>
@@ -29,6 +36,12 @@ function Chat() {
           overflowY: "auto",
         }}
       >
+        {
+          sampleMessage.map((message, index) => {
+            return <MessageComponent key={index} message={message} user={user} />
+          })
+        }
+
       </Stack>
       <form
         style={{

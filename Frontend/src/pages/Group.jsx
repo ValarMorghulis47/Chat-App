@@ -28,6 +28,7 @@ import { Link } from '../components/styles/StyledComponents';
 import UserItem from "../components/shared/UserItem";
 import AddMemberDialog from "../components/dialogue/AddMemberDialogue";
 import ConfirmDeleteDialog from "../components/dialogue/ConfirmDeleteDialogue";
+import Title from "../components/shared/Title";
 
 function Group() {
 
@@ -195,6 +196,7 @@ function Group() {
 
   return (
     <Grid container height={"100vh"}>
+      <Title title="Manage Groups" description="Group Page" />
       <Grid
         item
         sx={{

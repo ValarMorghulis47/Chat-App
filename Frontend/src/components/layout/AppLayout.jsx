@@ -20,7 +20,7 @@ const AppLayout = () => (WrappedComponent) => {
 
         return (
             <>
-                <Title />
+                <Title title='Chat App - The Best Chat App In THe World' />
                 <Header />
 
                 <Grid container height={"calc(100vh - 4rem)"}>

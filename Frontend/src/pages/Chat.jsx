@@ -11,6 +11,7 @@ import { useState } from "react";
 import FileMenu from "../components/dialogue/FileMenu";
 import { sampleMessage } from "../constants/sampleData";
 import MessageComponent from "../components/shared/MessageComponent";
+import Title from "../components/shared/Title";
 
 function Chat() {
 
@@ -24,6 +25,7 @@ function Chat() {
 
   return (
     <Fragment>
+      <Title title={user.name} description="Chat Page" />
       <Stack
         ref={containerRef}
         boxSizing={"border-box"}

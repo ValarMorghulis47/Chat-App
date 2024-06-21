@@ -2,10 +2,12 @@ import React from "react";
 import { Error as ErrorIcon } from "@mui/icons-material";
 import { Container, Stack, Typography } from "@mui/material";
 import { Link } from "react-router-dom";
+import Title from "../components/shared/Title";
 
 const NotFound = () => {
   return (
     <Container maxWidth="lg" sx={{ height: "100vh" }}>
+      <Title title="Not Found" description="404 Page" />
       <Stack
         alignItems={"center"}
         spacing={"2rem"}

@@ -6,6 +6,7 @@ import { useInputValidation, useStrongPassword } from '6pp';
 import { usernameValidator } from '../utils/validators';
 import { useEffect } from 'react';
 import { bgGradient } from '../constants/color';
+import Title from '../components/shared/Title';
 
 
 function login() {
@@ -68,6 +69,7 @@ function login() {
                 backgroundImage: bgGradient,
             }}
         >
+            <Title title="Login" description="Login Page" />
             <Container component={"main"} maxWidth="xs" sx={{ height: "100vh", display: "flex", justifyContent: "center", alignItems: "center" }}>
                 <Paper elevation={3} sx={{ padding: 4, display: "flex", flexDirection: "column", alignItems: "center" }}>
                     {isLoggedIn ? (

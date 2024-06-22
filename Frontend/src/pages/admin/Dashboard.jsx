@@ -23,6 +23,7 @@ import {
   SearchField,
 } from "../../components/styles/StyledComponents";
 import { matBlack } from "../../constants/color";
+import Title from "../../components/shared/Title";
 
 const Dashboard = () => {
   const stats = [2,4,20,43];
@@ -84,6 +85,7 @@ const Dashboard = () => {
     <AdminLayout>
       {
         <Container component={"main"}>
+          <Title title={"Dashboard"} />
           {Appbar}
 
           <Stack

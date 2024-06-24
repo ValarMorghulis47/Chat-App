@@ -7,10 +7,12 @@ import { usernameValidator } from '../utils/validators';
 import { useEffect } from 'react';
 import { bgGradient } from '../constants/color';
 import Title from '../components/shared/Title';
+import axios from 'axios';
 
 
 function login() {
     const [isLoggedIn, setIsLoggedIn] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
     const [avatarSizeError, setAvatarSizeError] = useState("");
     const [selectedFile, setSelectedFile] = useState();
     const [preview, setPreview] = useState();
@@ -29,6 +31,7 @@ function login() {
 
         const objectUrl = URL.createObjectURL(selectedFile);
         setPreview(objectUrl);
+        console.log(selectedFile);
 
         // free memory when ever this component is unmounted
         return () => URL.revokeObjectURL(objectUrl);
@@ -57,6 +60,21 @@ function login() {
 
     const handleLogin = (e) => {
         e.preventDefault();
+
+        setIsLoading(true);
+
+        const configOption = {
+            withCredentials: true,
+            headers: {
+                "Content-Type": "application/json",
+            },
+        }
+
+        axios.post('/api/v1/user/login', {
+            email: email.value,
+            password: password.value,
+        }, configOption).then((res) => console.log(res)).catch((err) => console.log(err)).finally(() => setIsLoading(false));
+
     };
 
     function handleSignUp(e) {
@@ -95,7 +113,7 @@ function login() {
                                     value={password.value}
                                     onChange={password.changeHandler}
                                 />
-                                <Button type="submit" variant="contained" color="primary" fullWidth sx={{ marginTop: "1rem" }}>Login</Button>
+                                <Button type="submit" variant="contained" color="primary" fullWidth sx={{ marginTop: "1rem" }} disabled= {isLoading}>Login</Button>
                                 <Typography textAlign={"center"} margin={"1rem"}>OR</Typography>
                                 <Button variant="text" fullWidth onClick={() => setIsLoggedIn(false)}>Sign Up Instead</Button>
                             </form>

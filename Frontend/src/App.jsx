@@ -2,6 +2,8 @@ import React, { lazy, Suspense } from 'react'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
 import  ProtectRoute  from './components/auth/ProtectRoute';
 import { LayoutLoader } from './components/layout/Loaders';
+import { useEffect } from 'react';
+import axios from 'axios';
 
 function App() {
   const Home = lazy(() => import('./pages/Home'));
@@ -15,7 +17,11 @@ function App() {
   const UserManagement = lazy(() => import('./pages/admin/UserManagement'));
   const MessageManagement = lazy(() => import('./pages/admin/MessageManagement'));
 
-  let user = true;
+  let user = false;
+
+  // useEffect(() => {
+  //   axios.get('/user/profile', )
+  // }, []);
 
   return (
     <Router>

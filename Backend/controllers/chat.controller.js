@@ -86,10 +86,13 @@ const getMyChats = TryCatch(async (req, res, next) => {
                             $slice: ["$Details.avatar_url", 3],
                         },
                         else: {
-                            $arrayElemAt: [
-                                "$Details.avatar_url",
-                                0,
-                            ],
+                            $filter: {
+                                input: "$Details.avatar_url",
+                                as: "individualAvatar",
+                                cond: {
+                                    $ne: ["$$individualAvatar", req.user.avatar_url]
+                                }
+                            }
                         },
                     },
                 },
@@ -120,7 +123,6 @@ const getMyChats = TryCatch(async (req, res, next) => {
             },
         },
     ]);
-
     return res.status(200)
         .json({
             success: true,

@@ -16,6 +16,7 @@ const ChatItem = ({
     index = 0,
     handleDeleteChat,
 }) => {
+    console.log("ChatItem", avatar);
     return (
         <Link
             sx={{

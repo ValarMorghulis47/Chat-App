@@ -4,6 +4,9 @@ import  ProtectRoute  from './components/auth/ProtectRoute';
 import { LayoutLoader } from './components/layout/Loaders';
 import { useEffect } from 'react';
 import axios from 'axios';
+import { Toaster } from 'react-hot-toast';
+import { userExists, userNotExists } from './redux/reducers/auth';
+import { useDispatch, useSelector } from 'react-redux';
 
 function App() {
   const Home = lazy(() => import('./pages/Home'));
@@ -17,13 +20,15 @@ function App() {
   const UserManagement = lazy(() => import('./pages/admin/UserManagement'));
   const MessageManagement = lazy(() => import('./pages/admin/MessageManagement'));
 
-  let user = false;
+  const dispatch = useDispatch();
 
-  // useEffect(() => {
-  //   axios.get('/user/profile', )
-  // }, []);
+  useEffect(() => {
+    axios.get('/api/v1/user/profile', { withCredentials: true}).then(({ data }) => dispatch(userExists(data.user))).catch(() => dispatch(userNotExists()));
+  }, [])
 
-  return (
+  const { user, loader } = useSelector(state => state.auth);
+
+  return loader ? ( <LayoutLoader /> ) : (
     <Router>
       <Suspense fallback={<LayoutLoader />}>
         <Routes>
@@ -45,6 +50,7 @@ function App() {
           <Route path="*" element={<NotFound />} />;
         </Routes>
       </Suspense>
+      <Toaster position='top-right' />
     </Router>
   )
 }

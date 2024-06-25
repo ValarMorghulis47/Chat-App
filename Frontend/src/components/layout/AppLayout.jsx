@@ -6,12 +6,16 @@ import ChatList from '../specific/ChatList';
 import { sampleChats } from '../../constants/sampleData';
 import { useParams } from 'react-router-dom';
 import Profile from '../specific/Profile';
+import { useSelector } from 'react-redux';
 
 const AppLayout = () => (WrappedComponent) => {
     return (props) => {
 
         const params = useParams();
         const chatId = params.chatId;
+
+        const { user } = useSelector(state => state.auth);
+        console.log(user);
 
         const handleDeleteChat = (e, _id, groupChat) => {
             e.preventDefault();
@@ -50,7 +54,7 @@ const AppLayout = () => (WrappedComponent) => {
                             bgcolor: "rgba(0,0,0,0.85)",
                         }}
                     >
-                       <Profile />
+                       <Profile user={user} />
                     </Grid>
                 </Grid>
             </>

@@ -8,6 +8,9 @@ import { useEffect } from 'react';
 import { bgGradient } from '../constants/color';
 import Title from '../components/shared/Title';
 import axios from 'axios';
+import toast from 'react-hot-toast';
+import { useDispatch } from 'react-redux';
+import { userExists } from '../redux/reducers/auth';
 
 
 function login() {
@@ -21,6 +24,8 @@ function login() {
     const bio = useInputValidation("");
     const username = useInputValidation("", usernameValidator);
     const password = useStrongPassword();
+
+    const dispatch = useDispatch();
 
     // create a preview as a side effect, whenever selected file is changed
     useEffect(() => {
@@ -73,7 +78,7 @@ function login() {
         axios.post('/api/v1/user/login', {
             email: email.value,
             password: password.value,
-        }, configOption).then((res) => console.log(res)).catch((err) => console.log(err)).finally(() => setIsLoading(false));
+        }, configOption).then(({data}) => {toast.success(data.message); dispatch(userExists(data.user))}).catch((err) => toast.error(err.response.data.message)).finally(() => setIsLoading(false));
 
     };
 

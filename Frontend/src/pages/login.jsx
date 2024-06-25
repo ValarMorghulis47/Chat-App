@@ -23,7 +23,7 @@ function login() {
     const email = useInputValidation("");
     const bio = useInputValidation("");
     const username = useInputValidation("", usernameValidator);
-    const password = useStrongPassword();
+    const password = useInputValidation();
 
     const dispatch = useDispatch();
 
@@ -82,8 +82,35 @@ function login() {
 
     };
 
-    function handleSignUp(e) {
+    async function handleSignUp(e) {
         e.preventDefault();
+
+        setIsLoading(true);
+
+        const formData = new FormData();
+        formData.append("avatar", selectedFile);
+        formData.append("email", email.value);
+        formData.append("username", username.value);
+        formData.append("bio", bio.value);
+        formData.append("password", password.value);
+
+        const configOption = {
+            withCredentials: true,
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        };
+
+        try {
+            const { data } = await axios.post("/api/v1/user/register", formData, configOption);
+            dispatch(userExists(data.user));
+            toast.success(data.message);
+        } catch (error) {
+            toast.error(error.response.data.message);
+        } finally {
+            setIsLoading(false);
+        }
+
     };
 
     return (
@@ -211,7 +238,7 @@ function login() {
                                     </Typography>
                                 )}
 
-                                <Button type="submit" variant="contained" color="primary" fullWidth sx={{ marginTop: "1rem" }}>Sign Up</Button>
+                                <Button type="submit" variant="contained" color="primary" fullWidth sx={{ marginTop: "1rem" }} disabled={isLoading}>Sign Up</Button>
                                 <Typography textAlign={"center"} margin={"1rem"}>OR</Typography>
                                 <Button variant="text" fullWidth onClick={() => setIsLoggedIn(true)}>Login</Button>
                             </form>

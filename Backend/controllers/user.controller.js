@@ -3,7 +3,7 @@ import { Chat } from "../models/chat.model.js";
 import { Request } from "../models/request.model.js";
 import { User } from "../models/user.model.js"
 import { ErrorHandler } from "../utils/utility.js";
-import { emitEvent } from "../utils/features.js";
+import { DeleteFilesCloudinary, UploadFilesCloudinary, emitEvent } from "../utils/features.js";
 import { NEW_REQUEST, REFETCH_CHATS } from "../constants/events.js";
 
 
@@ -18,9 +18,21 @@ const generateToken = async (userId) => {
 
 const registerUser = TryCatch(async (req, res, next) => {
     const { email, username, password, bio } = req.body;
-    //Check if the username or email is already in use
-    const user = await User.create({ email, username, password, bio, avatar_url: 'abc', avatar_public_id: 'xyz' });
-    if (!user) return next(new ErrorHandler('User not created', 404));
+    //Check if the username is already in use
+    const checkUsername = await User.findOne({ username });
+    if (checkUsername) return next(new ErrorHandler('Username already in use', 400));
+
+    const file = req.file;
+    if (!file) return next(new ErrorHandler("Please Upload Avatar"));
+
+    const result = await UploadFilesCloudinary([file], 'user');
+    if (!result) return next(new ErrorHandler("Error Uploading Avatar"));
+
+    const user = await User.create({ email, username, password, bio, avatar_url: result[0].url, avatar_public_id: result[0].public_id });
+    if (!user) {
+        await DeleteFilesCloudinary([result[0].public_id]);
+        return next(new ErrorHandler('User not created', 404))
+    };
     return res.status(201).json({ success: true, message: "Account Created Successfully", user });
 });
 

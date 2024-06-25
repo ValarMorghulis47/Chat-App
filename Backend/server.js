@@ -10,6 +10,7 @@ import adminRouter from './routes/admin.route.js';
 import { errorMiddleware } from './middlewares/error.middleware.js';
 import { Server } from 'socket.io';
 import { NEW_MESSAGE, NEW_MESSAGE_ALERT } from './constants/events.js';
+import { v2 as cloudinary } from 'cloudinary';
 import { v4 as uuid } from 'uuid';
 import { getSockets } from './lib/helper.js';
 import { Message } from './models/message.model.js';
@@ -27,6 +28,12 @@ connectDB();
 // createSingleChats(2); // Uncomment this line to seed the database with 1 single chats
 // createMessagesInAChat("665c1599ab2bf0c6476b51bf", 50); // Uncomment this line to seed the database with 50 messages in a specific chat
 // createMessagesInAChat("665b65f54ad0534542e524a0", 5);
+
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 const app = express();
 const server = createServer(app);

@@ -1,4 +1,7 @@
 import mongoose from "mongoose"
+import { v2 as cloudinary } from "cloudinary"
+import { v4 as uuid } from "uuid"
+import { getBase64 } from "../lib/helper.js";
 
 
 const connectDB = async()=>{
@@ -16,12 +19,64 @@ const emitEvent = (req, event, users, data)=>{
     console.log(`Emitting event: ${event}`);
 }
 
-const UploadFilesCloudinary = async (files) => {
-    console.log("Uploading files to cloudinary");
-}
+const UploadFilesCloudinary = async (files = [], folderName) => {
+    const uploadPromises = files.map((file) => {
+      return new Promise((resolve, reject) => {
+        cloudinary.uploader.upload(
+          getBase64(file),
+          {
+            resource_type: "auto",
+            public_id: uuid(),
+            folder: folderName,
+          },
+          (error, result) => {
+            if (error) return reject(error);
+            resolve(result);
+          }
+        );
+      });
+    });
+  
+    try {
+      const results = await Promise.all(uploadPromises);
+  
+      const formattedResults = results.map((result) => ({
+        public_id: result.public_id,
+        url: result.secure_url,
+      }));
+      return formattedResults;
+    } catch (err) {
+      throw new Error("Error uploading files to cloudinary", err);
+    }
+};
+
+const DeleteFilesCloudinary = async (public_ids = []) => {
+    console.log("Deleting files from cloudinary");
+    // const deletePromises = public_ids.map((public_id) => {
+    //   return new Promise((resolve, reject) => {
+    //     cloudinary.uploader.destroy(public_id, (error, result) => {
+    //       if (error) return reject(error);
+    //       resolve(result);
+    //     });
+    //   });
+    // });
+  
+    // try {
+    //   const results = await Promise.all(deletePromises);
+  
+    //   const formattedResults = results.map((result) => ({
+    //     public_id: result.public_id,
+    //     url: result.secure_url,
+    //   }));
+    //   return formattedResults;
+    // } catch (err) {
+    //   throw new Error("Error deleting files from cloudinary", err);
+    // }
+};
 
 export{
     connectDB,
     emitEvent,
-    UploadFilesCloudinary
+    UploadFilesCloudinary,
+    DeleteFilesCloudinary
 }

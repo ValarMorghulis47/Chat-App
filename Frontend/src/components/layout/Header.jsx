@@ -20,9 +20,10 @@ import {
   Notifications as NotificationsIcon,
 } from "@mui/icons-material";
 import axios from 'axios';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { userNotExists } from '../../redux/reducers/auth';
 import toast from 'react-hot-toast';
+import { setIsMobile, setIsSearch } from '../../redux/reducers/misc';
 
 const SearchDialog = lazy(() => import("../specific/Search"));
 const NotifcationDialog = lazy(() => import("../specific/Notifications"));
@@ -33,17 +34,17 @@ const Header = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const [isMobile, setIsMobile] = useState(false);
-  const [isSearch, setIsSearch] = useState(false);
+  const { isSearch } = useSelector((state) => state.misc);
+
   const [isNotification, setIsNotification] = useState(false);
   const [isNewGroup, setIsNewGroup] = useState(false);
 
   const handleMobile = () => {
-    setIsMobile((prev) => !prev);
+    dispatch(setIsMobile(true));
   };
 
   const openSearch = () => {
-    setIsSearch((prev) => !prev);
+    dispatch(setIsSearch(true));
   };
 
   const openNotification = () => {

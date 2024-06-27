@@ -21,8 +21,18 @@ const api = createApi({
             }),
             providesTags: ['User']
         }),
+
+        sendFriendRequest: builder.mutation({       // Query for get request and mutaion for post, put and delete request
+            query: (data) => ({
+                url: 'user/sendFriend',
+                method: 'PUT',
+                credentials: 'include',
+                body: data
+            }),
+            invalidatesTags: ['User']
+        }),
     })
 })
 
 export default api;
-export const { useGetMyChatsQuery, useLazySearchUserQuery } = api;
+export const { useGetMyChatsQuery, useLazySearchUserQuery, useSendFriendRequestMutation } = api;

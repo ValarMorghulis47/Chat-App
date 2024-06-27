@@ -7,13 +7,14 @@ import {
   List,
   Stack,
   TextField,
+  Typography,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import UserItem from "../shared/UserItem";
-import { sampleUsers } from "../../constants/sampleData";
 import { useDispatch, useSelector } from "react-redux";
 import { setIsSearch } from "../../redux/reducers/misc";
-import { useLazySearchUserQuery } from "../../redux/api/api";
+import { useLazySearchUserQuery, useSendFriendRequestMutation } from "../../redux/api/api";
+import { useAsyncMutation } from "../../hooks/hook";
 
 const Search = () => {
 
@@ -24,7 +25,10 @@ const Search = () => {
 
   const [searchUser] = useLazySearchUserQuery();  // You can use any name instead of searchUser
 
+  const [sendFriendRequest, isLoadingSendFriendRequest] = useAsyncMutation(useSendFriendRequestMutation);
+
   const [users, setUsers] = useState([]);
+  const [searchPerformed, setSearchPerformed] = useState(false);
 
   useEffect(() => {
 
@@ -33,12 +37,14 @@ const Search = () => {
         searchUser(search.value)
           .then((res) => {
             setUsers(res.data.users);
+            setSearchPerformed(true);
           })
           .catch((error) => {
             console.log(error);
           });
       } else {
         setUsers([]);
+        setSearchPerformed(false);
       }
     }, 1000)
 
@@ -46,10 +52,8 @@ const Search = () => {
 
   }, [search.value]);
 
-  const isLoadingSendFriendRequest = false;
-
   const addFriendHandler = async (id) => {
-    console.log("Sending friend request");
+    await sendFriendRequest("Sending Friend Request...", { receiverId: id });
   };
 
   const handleClose = () => {
@@ -58,7 +62,7 @@ const Search = () => {
 
   return (
     <Dialog open={isSearch} onClose={handleClose}>
-      <Stack p={"2rem"} direction={"column"} width={"25rem"}>
+      <Stack p={"2rem"} direction={"column"} width={"25rem"} spacing={2}>
         <DialogTitle textAlign={"center"}>Find People</DialogTitle>
         <TextField
           label=""
@@ -75,7 +79,9 @@ const Search = () => {
           }}
         />
 
-        {users.length > 0 ? (
+        {searchPerformed && users.length === 0 ? (
+          <Typography textAlign={"center"}>No users found.</Typography>
+        ) : (
           <List>
             {users.map((i) => (
               <UserItem
@@ -86,8 +92,6 @@ const Search = () => {
               />
             ))}
           </List>
-        ) : (
-          <p>No users found.</p>
         )}
       </Stack>
     </Dialog>

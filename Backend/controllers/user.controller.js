@@ -123,6 +123,7 @@ const acceptRejectRequest = TryCatch(async (req, res, next) => {
     const { requestId, accept } = req.body;  // acction will be either accept or reject or true or false and it will come from the button click
 
     const request = await Request.findById(requestId).populate("sender", "username avatar_url").populate("receiver", "username avatar_url");
+    console.log(request);
     if (!request)
         return next(new ErrorHandler("Request not found", 404));
     if (request.receiver._id.toString() !== req.user._id.toString())
@@ -133,7 +134,7 @@ const acceptRejectRequest = TryCatch(async (req, res, next) => {
         await Promise.all([
             Chat.create({
                 members,
-                name: request.sender.username
+                name: `${request.sender.username}-${request.receiver.username}`
             }),
             request.deleteOne()
         ]);

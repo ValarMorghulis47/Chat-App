@@ -112,13 +112,22 @@ const getMyChats = TryCatch(async (req, res, next) => {
                     },
                 },
                 name: {
-                    $cond: {
-                        if: "$groupChat",
-                        then: "$name",
-                        else: {
-                            $arrayElemAt: ["$Details.username", 0]
-                        }
-                    }
+                    $map: {
+                        input: {
+                            $filter: {
+                                input: "$Details",
+                                as: "ind",
+                                cond: {
+                                    $ne: [
+                                        "$$ind.username",
+                                        req.user.username,
+                                    ],
+                                },
+                            },
+                        },
+                        as: 'obj',
+                        in: "$$obj.username",
+                    },
                 }
             },
         },
@@ -382,7 +391,7 @@ const deleteGroup = TryCatch(async (req, res, next) => {
     });
     const public_ids = [];
     messagesWithAttachements.forEach(message => {       // we didn't used map because then we would have to return something
-        message.attachments.forEach(avatar =>{
+        message.attachments.forEach(avatar => {
             public_ids.push(avatar.public_id);
         })
     });
@@ -404,35 +413,35 @@ const deleteGroup = TryCatch(async (req, res, next) => {
 const getMessages = TryCatch(async (req, res, next) => {
     const { chatId } = req.params;
     const { page = 1 } = req.query;
-  
+
     const resultPerPage = 20;
     const skip = (page - 1) * resultPerPage;
-  
+
     const chat = await Chat.findById(chatId);
-  
+
     if (!chat) return next(new ErrorHandler("Chat not found", 404));
-  
+
     if (!chat.members.includes(req.user._id.toString()))
-      return next(
-        new ErrorHandler("You are not allowed to access this chat", 403)
-      );
-  
+        return next(
+            new ErrorHandler("You are not allowed to access this chat", 403)
+        );
+
     const [messages, totalMessagesCount] = await Promise.all([
-      Message.find({ chat: chatId })
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(resultPerPage)
-        .populate("sender", "name avatar_url")
-        .lean(),
-      Message.countDocuments({ chat: chatId }),
+        Message.find({ chat: chatId })
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(resultPerPage)
+            .populate("sender", "name avatar_url")
+            .lean(),
+        Message.countDocuments({ chat: chatId }),
     ]);
-  
+
     const totalPages = Math.ceil(totalMessagesCount / resultPerPage) || 0;
-  
+
     return res.status(200).json({
-      success: true,
-      messages: messages.reverse(),
-      totalPages,
+        success: true,
+        messages: messages.reverse(),
+        totalPages,
     });
 });
 

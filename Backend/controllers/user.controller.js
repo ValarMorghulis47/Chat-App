@@ -120,7 +120,7 @@ const sendFriendRequest = TryCatch(async (req, res, next) => {
 });
 
 const acceptRejectRequest = TryCatch(async (req, res, next) => {
-    const { requestId, accpet } = req.body;  // acction will be either accept or reject or true or false and it will come from the button click
+    const { requestId, accept } = req.body;  // acction will be either accept or reject or true or false and it will come from the button click
 
     const request = await Request.findById(requestId).populate("sender", "username avatar_url").populate("receiver", "username avatar_url");
     if (!request)
@@ -128,7 +128,7 @@ const acceptRejectRequest = TryCatch(async (req, res, next) => {
     if (request.receiver._id.toString() !== req.user._id.toString())
         return next(new ErrorHandler("You are not authorized to perform this action", 401));
 
-    if (accpet) {
+    if (accept) {
         const members = [request.sender._id, request.receiver._id];
         await Promise.all([
             Chat.create({
@@ -147,7 +147,6 @@ const acceptRejectRequest = TryCatch(async (req, res, next) => {
                 senderId: request.sender._id,
             });
     }
-
     await request.deleteOne();
     return res.status(200)
         .json({

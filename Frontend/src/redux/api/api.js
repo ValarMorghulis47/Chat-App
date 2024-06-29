@@ -49,6 +49,14 @@ const api = createApi({
             }),
             invalidatesTags: ['Chat']
         }),
+
+        getChatDetails: builder.query({
+            query: (chatId) => ({
+                url: `chat/chatDetails/${chatId}`,
+                credentials: 'include'
+            }),
+            providesTags: ['Chat']
+        })
     })
 })
 
@@ -58,5 +66,6 @@ export const {
     useLazySearchUserQuery,
     useSendFriendRequestMutation,
     useGetNotificationsQuery,
-    useAccpetFriendRequestMutation 
+    useAccpetFriendRequestMutation,
+    useGetChatDetailsQuery 
 } = api;

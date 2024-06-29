@@ -7,6 +7,8 @@ import RenderAttachment from "./RenderAttachement";
 // import { motion } from "framer-motion";
 
 const MessageComponent = ({ message, user }) => {
+    console.log(message);
+    console.log(user);
     const { sender, content, attachments = [], createdAt } = message;
 
     const sameSender = sender?._id === user?._id;
@@ -28,9 +30,9 @@ const MessageComponent = ({ message, user }) => {
         >
             {!sameSender && (
                 <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <Avatar src={sender.avatar} style={{ width: '40px', height: '40px', borderRadius: '50%', marginRight: '10px' }} />
+                    <Avatar src={sender.avatar_url} style={{ width: '40px', height: '40px', borderRadius: '50%', marginRight: '10px' }} />
                     <Typography color={lightBlue} fontWeight={"600"} variant="caption">
-                        {sender.name}
+                        {sender.username}
                     </Typography>
                 </div>
             )}

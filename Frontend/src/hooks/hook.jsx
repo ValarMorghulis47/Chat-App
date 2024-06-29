@@ -38,8 +38,22 @@ const useAsyncMutation = (mutationFunc) => {   // we will pass the mutation func
   };
 
   return [executeMutation, isLoading, data];
-}; 
+};
+
+const useSocketEvents = (socket, eventHandlerObject) => {
+  useEffect(() => {
+    Object.entries(eventHandlerObject).forEach(([eventName, handler]) => {
+      socket.on(eventName, handler);
+    })
+
+    return () => {
+      Object.entries(eventHandlerObject).forEach(([eventName, handler]) => {
+        socket.off(eventName, handler);
+      })
+    }
+  }, [socket, eventHandlerObject]);
+};
 
 
 
-export { useErrors, useAsyncMutation };
+export { useErrors, useAsyncMutation, useSocketEvents };

@@ -12,9 +12,11 @@ const verfiyUser = TryCatch(async (req, res, next) => {
     */
     const token = req.cookies["JWT-Token"];
     if (!token) return next(new ErrorHandler('Access Denied', 401));
+
     const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decodedToken.id);
     if (!user) return next(new ErrorHandler('User not found', 404));
+
     req.user = user;
     next();
 });
@@ -25,13 +27,26 @@ const adminOnly = (req, res, next) => {
       return next(new ErrorHandler("Only Admin can access this route", 401));
   
     const secretKey = jwt.verify(token, process.env.JWT_SECRET);
-    // console.log(secretKey);
     const isMatched = secretKey.secretKey === process.env.ADMIN_SECRET_KEY;
   
     if (!isMatched)
       return next(new ErrorHandler("Only Admin can access this route", 401));
   
     next();
-  };
+};
 
-export { verfiyUser, adminOnly };
+const socketAuth = TryCatch(async (err, socket, next) => {
+    if (err) return next(new ErrorHandler('Authentication Error', 401));
+
+    const token = socket.request.cookies["JWT-Token"];
+    if (!token) return next(new ErrorHandler('Access Denied', 401));
+
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decodedToken.id);
+    if (!user) return next(new ErrorHandler('User not found', 404));
+
+    socket.user = user;
+    next();
+});
+
+export { verfiyUser, adminOnly, socketAuth };

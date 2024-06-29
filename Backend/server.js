@@ -14,6 +14,7 @@ import { v2 as cloudinary } from 'cloudinary';
 import { v4 as uuid } from 'uuid';
 import { getSockets } from './lib/helper.js';
 import { Message } from './models/message.model.js';
+import { socketAuth } from './middlewares/auth.middleware.js';
 // import { createMessagesInAChat, createSingleChats } from './seeders/chat.seeders.js';
 const userSocketIDs = new Map();  // This will contain the socket id of the user and the user id
 
@@ -52,14 +53,13 @@ app.use('/api/v1/user', userRouter);
 app.use('/api/v1/chat', chatRouter);
 app.use('/api/v1/admin', adminRouter);
 
-// io.use((socket, next) => { });
+io.use((socket, next) => {
+    cookieParser()(socket.request, socket.request.res, async (err) => await socketAuth(err, socket, next));
+});
 
 io.on('connection', (socket) => {
-    const user = {                                 // This is a fake user object, we will get the user from the above io.use middleware
-        _id: "1234",
-        name: "John Doe",
-        avatar_url: "https://www.google.com"
-    }
+    
+    const user = socket.user;
     userSocketIDs.set(user._id.toString(), socket.id);
 
     socket.on(NEW_MESSAGE, async ({ chatId, members, message }) => {

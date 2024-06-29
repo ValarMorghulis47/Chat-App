@@ -338,7 +338,7 @@ const sendAttachements = TryCatch(async (req, res, next) => {
 
 const getChatDetails = TryCatch(async (req, res, next) => {
     const { chatId } = req.params;
-    const chat = await Chat.findById(chatId).populate('members', 'username avatar_url');
+    const chat = await Chat.findById(chatId);
     if (!chat)
         return next(new ErrorHandler('Chat not found', 404));
 

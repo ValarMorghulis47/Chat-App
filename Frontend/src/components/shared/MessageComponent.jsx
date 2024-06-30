@@ -7,8 +7,6 @@ import RenderAttachment from "./RenderAttachement";
 // import { motion } from "framer-motion";
 
 const MessageComponent = ({ message, user }) => {
-    console.log(message);
-    console.log(user);
     const { sender, content, attachments = [], createdAt } = message;
 
     const sameSender = sender?._id === user?._id;

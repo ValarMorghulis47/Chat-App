@@ -285,7 +285,6 @@ const leaveGroup = TryCatch(async (req, res, next) => {
 
 const sendAttachements = TryCatch(async (req, res, next) => {
     const { chatId } = req.body;
-    console.log(req.files);
 
     const [chat, user] = await Promise.all([
         Chat.findById(chatId),
@@ -301,7 +300,7 @@ const sendAttachements = TryCatch(async (req, res, next) => {
 
     const files = req.files || [];
     // Files will be uploaded to clodinary
-    const attachments = [];     // will use uploadFilesCloudinary function to upload files to cloudinary
+    const attachments = await UploadFilesCloudinary(files, 'chat-attachments');
 
     const message = await Message.create({
         content: "",
@@ -414,7 +413,7 @@ const getMessages = TryCatch(async (req, res, next) => {
     const { chatId } = req.params;
     const { page = 1 } = req.query;
 
-    const resultPerPage = 20;
+    const resultPerPage = 10;
     const skip = (page - 1) * resultPerPage;
 
     const chat = await Chat.findById(chatId);

@@ -4,7 +4,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 const api = createApi({
     reducerPath: 'api',  // name of the slice just like we do in createSlice
     baseQuery: fetchBaseQuery({ baseUrl: '/api/v1/' }),
-    tagTypes: ['Chat', 'User'],
+    tagTypes: ['Chat', 'User', 'Message'],
     endpoints: (builder) => ({
         getMyChats: builder.query({
             query: () => ({
@@ -56,7 +56,25 @@ const api = createApi({
                 credentials: 'include'
             }),
             providesTags: ['Chat']
-        })
+        }),
+
+        getMessages: builder.query({
+            query: ({chatId, page}) => ({
+                url: `chat/getMessages/${chatId}?page=${page}`,
+                credentials: 'include'
+            }),
+            providesTags: ['Message']
+        }),
+
+        sendAttachments: builder.mutation({
+            query: (data) => ({
+                url: 'chat/sendAttachement',
+                method: 'POST',
+                credentials: 'include',
+                body: data
+            }),
+            invalidatesTags: ['Message']
+        }),
     })
 })
 
@@ -67,5 +85,7 @@ export const {
     useSendFriendRequestMutation,
     useGetNotificationsQuery,
     useAccpetFriendRequestMutation,
-    useGetChatDetailsQuery 
+    useGetChatDetailsQuery,
+    useGetMessagesQuery,
+    useSendAttachmentsMutation
 } = api;

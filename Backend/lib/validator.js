@@ -64,11 +64,11 @@ const renameValidator = () => [
 ];
 
 const deleteGroupValidator = () => [
-    param("id", "Please Enter Chat ID").notEmpty(),
+    param("chatId", "Please Enter Chat ID").notEmpty(),
 ];
 
 const getMessagesValidator = () => [
-    param("id", "Please Enter Chat ID").notEmpty(),
+    param("chatId", "Please Enter Chat ID").notEmpty(),
 ];
 
 const sendRequestValidator = () => [

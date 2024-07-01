@@ -73,7 +73,6 @@ const api = createApi({
                 credentials: 'include',
                 body: data
             }),
-            invalidatesTags: ['Message']
         }),
     })
 })

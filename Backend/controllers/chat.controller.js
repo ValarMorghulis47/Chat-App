@@ -412,9 +412,9 @@ const deleteGroup = TryCatch(async (req, res, next) => {
 
 const getMessages = TryCatch(async (req, res, next) => {
     const { chatId } = req.params;
-    const { page = 1 } = req.query;
+    const { page } = req.query;
 
-    const resultPerPage = 10;
+    const resultPerPage = 5;
     const skip = (page - 1) * resultPerPage;
 
     const chat = await Chat.findById(chatId);

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import Title from '../shared/Title';
 import Header from './Header';
 import { Grid, Skeleton, Drawer } from "@mui/material";
@@ -7,9 +7,11 @@ import { useParams } from 'react-router-dom';
 import Profile from '../specific/Profile';
 import { useDispatch, useSelector } from 'react-redux';
 import { useGetMyChatsQuery } from '../../redux/api/api';
-import { setIsMobile } from '../../redux/reducers/misc';
-import { useErrors } from '../../hooks/hook';
+import { setIsMobile, setIsNotification } from '../../redux/reducers/misc';
+import { useErrors, useSocketEvents } from '../../hooks/hook';
 import { getSocket } from '../../socket';
+import { NEW_MESSAGE_ALERT, NEW_REQUEST } from '../../constants/events';
+import { incrementNotification } from '../../redux/reducers/chat';
 
 const AppLayout = () => (WrappedComponent) => {
     return (props) => {
@@ -36,6 +38,21 @@ const AppLayout = () => (WrappedComponent) => {
         const handleMobileClose = () => {
             dispatch(setIsMobile(false));
         };
+
+        const newMessageAlertListener = useCallback((data) => {
+            console.log("New Message Alert", data);
+        }, []);
+
+        const newRequestListener = useCallback(() => {
+            dispatch(incrementNotification());
+        }, []);
+
+        const eventHandlers = {
+            [NEW_MESSAGE_ALERT] : newMessageAlertListener,
+            [NEW_REQUEST] : newRequestListener
+        };
+
+        useSocketEvents(socket, eventHandlers);
 
         return (
             <>

@@ -16,6 +16,7 @@ const connectDB = async () => {
 }
 
 const emitEvent = (req, event, users, data) => {
+  console.log("Emitting event", event, "to users", users);
   const io = req.app.get('io');
   const userSockets = getSockets(users);
   io.to(userSockets).emit(event, data);

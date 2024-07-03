@@ -24,6 +24,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { userNotExists } from '../../redux/reducers/auth';
 import toast from 'react-hot-toast';
 import { setIsMobile, setIsNotification, setIsSearch } from '../../redux/reducers/misc';
+import { resetNotificationCount } from '../../redux/reducers/chat';
 
 const SearchDialog = lazy(() => import("../specific/Search"));
 const NotifcationDialog = lazy(() => import("../specific/Notifications"));
@@ -35,6 +36,7 @@ const Header = () => {
   const dispatch = useDispatch();
 
   const { isSearch, isNotification } = useSelector((state) => state.misc);
+  const { notificationCount } = useSelector((state) => state.chat);
   const [isNewGroup, setIsNewGroup] = useState(false);
 
   const handleMobile = () => {
@@ -47,6 +49,7 @@ const Header = () => {
 
   const openNotification = () => {
     dispatch(setIsNotification(true));
+    dispatch(resetNotificationCount());
   };
 
   const openNewGroup = () => {
@@ -125,6 +128,7 @@ const Header = () => {
                 title={"Notifications"}
                 icon={<NotificationsIcon />}
                 onClick={openNotification}
+                value={notificationCount}
               />
 
               <IconBtn
@@ -172,6 +176,6 @@ const IconBtn = ({ title, icon, onClick, value }) => {
       </IconButton>
     </Tooltip>
   );
-}
+};
 
 export default Header

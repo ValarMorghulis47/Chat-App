@@ -4,7 +4,7 @@ import {
 } from "@mui/icons-material";
 import { IconButton, Skeleton, Stack } from "@mui/material";
 import { useInfiniteScrollTop } from '6pp'
-import React, { Fragment, useCallback, useRef } from 'react';
+import React, { Fragment, useCallback, useEffect, useRef } from 'react';
 import AppLayout from '../components/layout/AppLayout';
 import { grayColor, orange } from '../constants/color';
 import { InputBox } from "../components/styles/StyledComponents";
@@ -27,14 +27,14 @@ function Chat({ chatId, user }) {
   const [chatMessages, setChatMessages] = useState([]);   // we will use this to store the messages of the chat
   const [page, setPage] = useState(1);
 
-
+  // console.log(page);
   const socket = getSocket();
   const containerRef = useRef(null);
   const [fileMenuAnchor, setFileMenuAnchor] = useState(null);
   const chatDetails = useGetChatDetailsQuery(chatId);   // we didn't destructured the data and erros becuase we will use it later
   const oldMessages = useGetMessagesQuery({ chatId, page});
 
-  const {data: oldMessage, setdata: setOldMessage} = useInfiniteScrollTop(containerRef, oldMessages.data?.totalPages, page, setPage, oldMessages.data?.messages);
+  const {data: oldMessage, setData: setOldMessage} = useInfiniteScrollTop(containerRef, oldMessages.data?.totalPages, page, setPage, oldMessages.data?.messages);
 
   const members = chatDetails.data?.members;
 
@@ -56,12 +56,25 @@ function Chat({ chatId, user }) {
     setFileMenuAnchor(e.currentTarget);
   };
   const newMessageHandler = useCallback((data) => {
+    if (data.chatId !== chatId) return;
     setChatMessages((prev) => [...prev, data.message]);
-  })
+  }, [chatId]);
 
   const eventHandlerObject = {
     [NEW_MESSAGE]: newMessageHandler
   }
+  console.log(chatId);
+  useEffect(() => {
+    setPage(1);
+    return () => {
+      setChatMessages([]);
+      setMessage("");
+      setOldMessage([]);
+      console.log("in cleanup where the page resets to 1");
+      setPage(1);
+      console.log(page);
+    };
+  }, [chatId]);
 
   const allMessages = [...oldMessage, ...chatMessages];
   useSocketEvents(socket, eventHandlerObject);

@@ -45,6 +45,7 @@ const io = new Server(server, {
         credentials: true
     }
 });
+app.set('io', io);
 app.use(express.json());
 app.use(cookieParser());
 
@@ -58,7 +59,7 @@ io.use((socket, next) => {
 });
 
 io.on('connection', (socket) => {
-    
+
     const user = socket.user;
     userSocketIDs.set(user._id.toString(), socket.id);
 

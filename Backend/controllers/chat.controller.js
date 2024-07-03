@@ -52,6 +52,7 @@ const newGroupChat = TryCatch(async (req, res, next) => {
 //             data: transformedChats
 //         })
 // })
+
 const getMyChats = TryCatch(async (req, res, next) => {
     const chats = await Chat.aggregate([
         {

@@ -337,16 +337,32 @@ const sendAttachements = TryCatch(async (req, res, next) => {
 });
 
 const getChatDetails = TryCatch(async (req, res, next) => {
-    const { chatId } = req.params;
-    const chat = await Chat.findById(chatId);
-    if (!chat)
-        return next(new ErrorHandler('Chat not found', 404));
+    if (req.query.populate === "true") {
+        const chat = await Chat.findById(req.params.chatId)
+            .populate("members", "name avatar")
+            .lean();
 
-    return res.status(200).json({
-        success: true,
-        message: "Chat details fetched successfully",
-        data: chat
-    });
+        if (!chat) return next(new ErrorHandler("Chat not found", 404));
+
+        chat.members = chat.members.map(({ _id, name, avatar }) => ({
+            _id,
+            name,
+            avatar: avatar.url,
+        }));
+
+        return res.status(200).json({
+            success: true,
+            chat,
+        });
+    } else {
+        const chat = await Chat.findById(req.params.chatId);
+        if (!chat) return next(new ErrorHandler("Chat not found", 404));
+
+        return res.status(200).json({
+            success: true,
+            chat,
+        });
+    }
 });
 
 const renameGroup = TryCatch(async (req, res, next) => {
@@ -412,9 +428,9 @@ const deleteGroup = TryCatch(async (req, res, next) => {
 
 const getMessages = TryCatch(async (req, res, next) => {
     const { chatId } = req.params;
-    const { page } = req.query;
+    const { page = 1 } = req.query;
 
-    const resultPerPage = 5;
+    const resultPerPage = 20;
     const skip = (page - 1) * resultPerPage;
 
     const chat = await Chat.findById(chatId);

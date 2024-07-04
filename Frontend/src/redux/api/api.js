@@ -51,15 +51,20 @@ const api = createApi({
         }),
 
         getChatDetails: builder.query({
-            query: (chatId) => ({
-                url: `chat/chatDetails/${chatId}`,
-                credentials: 'include'
-            }),
-            providesTags: ['Chat']
+            query: ({ chatId, populate = false }) => {
+                let url = `chat/chatDetails/${chatId}`;
+                if (populate) url += "?populate=true";
+
+                return {
+                    url,
+                    credentials: "include",
+                };
+            },
+            providesTags: ["Chat"],
         }),
 
         getMessages: builder.query({
-            query: ({chatId, page}) => ({
+            query: ({ chatId, page }) => ({
                 url: `chat/getMessages/${chatId}?page=${page}`,
                 credentials: 'include'
             }),
@@ -78,7 +83,7 @@ const api = createApi({
 })
 
 export default api;
-export const { 
+export const {
     useGetMyChatsQuery,
     useLazySearchUserQuery,
     useSendFriendRequestMutation,

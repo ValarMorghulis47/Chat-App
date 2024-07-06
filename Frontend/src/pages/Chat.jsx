@@ -1,9 +1,3 @@
-import { useInfiniteScrollTop } from "6pp";
-import {
-  AttachFile as AttachFileIcon,
-  Send as SendIcon,
-} from "@mui/icons-material";
-import { IconButton, Skeleton, Stack } from "@mui/material";
 import React, {
   Fragment,
   useCallback,
@@ -11,19 +5,25 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { useDispatch } from "react-redux";
-import FileMenu from "../components/dialogue/FileMenu";
 import AppLayout from "../components/layout/AppLayout";
-import MessageComponent from "../components/shared/MessageComponent";
-import { InputBox } from "../components/styles/StyledComponents";
+import { IconButton, Skeleton, Stack } from "@mui/material";
 import { grayColor, orange } from "../constants/color";
 import {
-  NEW_MESSAGE
-} from "../constants/events";
-import { useErrors, useSocketEvents } from "../hooks/hook";
-import { useGetChatDetailsQuery, useGetMessagesQuery } from "../redux/api/api";
-import { setIsFileMenu } from "../redux/reducers/misc";
+  AttachFile as AttachFileIcon,
+  Send as SendIcon,
+} from "@mui/icons-material";
+import { InputBox } from "../components/styles/StyledComponents";
+import FileMenu from "../components/dialogue/FileMenu";
+import MessageComponent from "../components/shared/MessageComponent";
 import { getSocket } from "../socket";
+import {
+  NEW_MESSAGE,
+} from "../constants/events";
+import { useGetChatDetailsQuery, useGetMessagesQuery } from "../redux/api/api";
+import { useErrors, useSocketEvents } from "../hooks/hook";
+import { useInfiniteScrollTop } from "6pp";
+import { useDispatch } from "react-redux";
+import { setIsFileMenu } from "../redux/reducers/misc";
 
 const Chat = ({ chatId, user }) => {
   const socket = getSocket();
@@ -33,9 +33,9 @@ const Chat = ({ chatId, user }) => {
 
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState();
   const [fileMenuAnchor, setFileMenuAnchor] = useState(null);
-  console.log(chatId);
+
   const chatDetails = useGetChatDetailsQuery({ chatId, skip: !chatId });
 
   const oldMessagesChunk = useGetMessagesQuery({ chatId, page });
@@ -80,7 +80,7 @@ const Chat = ({ chatId, user }) => {
       setMessages([]);
       setMessage("");
       setOldMessages([]);
-      setPage(1);
+      setPage(null);
     };
   }, [chatId]);
 
@@ -122,7 +122,6 @@ const Chat = ({ chatId, user }) => {
         {allMessages.map((i) => (
           <MessageComponent key={i._id} message={i} user={user} />
         ))}
-
       </Stack>
 
       <form

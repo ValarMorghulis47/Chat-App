@@ -54,31 +54,4 @@ const useSocketEvents = (socket, eventHandlerObject) => {
   }, [socket, eventHandlerObject]);
 };
 
-const useInfiniteScrollTop = (containerRef, totalPages, page, setPage, messages) => {
-  console.log(messages);
-  useEffect(() => {
-    const handleScroll = () => {
-      if (containerRef.current) {
-        const { scrollTop } = containerRef.current;
-        if (scrollTop === 0 && page < totalPages) {
-          setPage((prevPage) => prevPage + 1);
-        }
-      }
-    };
-
-    const container = containerRef.current;
-    if (container) {
-      container.addEventListener("scroll", handleScroll);
-    }
-
-    return () => {
-      if (container) {
-        container.removeEventListener("scroll", handleScroll);
-      }
-    };
-  }, [containerRef, totalPages, page, setPage]);
-  console.log(messages);
-  return [messages];
-};
-
-export { useErrors, useAsyncMutation, useSocketEvents, useInfiniteScrollTop };
+export { useErrors, useAsyncMutation, useSocketEvents };

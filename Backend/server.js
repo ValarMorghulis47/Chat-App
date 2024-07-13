@@ -9,7 +9,7 @@ import chatRouter from './routes/chat.route.js';
 import adminRouter from './routes/admin.route.js';
 import { errorMiddleware } from './middlewares/error.middleware.js';
 import { Server } from 'socket.io';
-import { NEW_MESSAGE, NEW_MESSAGE_ALERT } from './constants/events.js';
+import { NEW_MESSAGE, NEW_MESSAGE_ALERT, START_TYPING, STOP_TYPING } from './constants/events.js';
 import { v2 as cloudinary } from 'cloudinary';
 import { v4 as uuid } from 'uuid';
 import { getSockets } from './lib/helper.js';
@@ -93,6 +93,16 @@ io.on('connection', (socket) => {
         } catch (error) {
             throw new Error(error);
         }
+    });
+
+    socket.on(START_TYPING, ({ members, chatId }) => {
+        const membersSockets = getSockets(members);
+        socket.to(membersSockets).emit(START_TYPING, { chatId });
+    });
+
+    socket.on(STOP_TYPING, ({ members, chatId }) => {
+        const membersSockets = getSockets(members);
+        socket.to(membersSockets).emit(STOP_TYPING, { chatId });
     });
 
 

@@ -20,21 +20,33 @@ import {
   Typography,
 } from "@mui/material";
 import React, { useState, memo, useEffect, Suspense } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { bgGradient, matBlack } from '../constants/color';
 import { sampleChats, sampleUsers } from "../constants/sampleData";
 import AvatarCard from '../components/shared/AvatarCard';
 import { Link } from '../components/styles/StyledComponents';
 import UserItem from "../components/shared/UserItem";
+import { useDeleteGroupMutation, useGetChatDetailsQuery, useGetMyGroupsQuery, useRemoveMemberMutation, useUpdateGroupNameMutation } from '../redux/api/api';
 import AddMemberDialog from "../components/dialogue/AddMemberDialogue";
 import ConfirmDeleteDialog from "../components/dialogue/ConfirmDeleteDialogue";
 import Title from "../components/shared/Title";
+import { useAsyncMutation, useErrors } from "../hooks/hook";
+import toast from "react-hot-toast";
+import { setIsAddMember } from "../redux/reducers/misc";
 
 function Group() {
 
-  const isAddMember = false;
-  const navigate = useNavigate();
   const chatId = useSearchParams()[0].get("group");
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const { isError, error, isLoading, data } = useGetMyGroupsQuery();
+  const chatDetails = useGetChatDetailsQuery({ chatId, populate: true }, { skip: !chatId });
+  const [update, isLoadingUpdate] = useAsyncMutation(useUpdateGroupNameMutation);
+  const [remove, isLoadingRemoving] = useAsyncMutation(useRemoveMemberMutation);
+  const [deleteGroup, isLoadingDelete] = useAsyncMutation(useDeleteGroupMutation);
+  const { isAddMember } = useSelector((state) => state.misc);
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
@@ -42,6 +54,25 @@ function Group() {
 
   const [groupName, setGroupName] = useState("");
   const [groupNameUpdatedValue, setGroupNameUpdatedValue] = useState("");
+  const [members, setMembers] = useState([]);
+
+
+  useErrors([{ isError, error }, { isError: chatDetails.isError, error: chatDetails.error }]);
+
+  useEffect(() => {
+    if (chatDetails.data) {
+      setGroupName(chatDetails.data.chat.name);
+      setGroupNameUpdatedValue(chatDetails.data.chat.name);
+      setMembers(chatDetails.data.chat.members);
+    }
+
+    return () => {
+      setGroupName("");
+      setGroupNameUpdatedValue("");
+      setIsEdit(false);
+      setMembers([]);
+    };
+  }, [chatDetails.data]);
 
   const handleMobile = () => {
     setIsMobileMenuOpen((prev) => !prev);
@@ -54,8 +85,11 @@ function Group() {
   };
 
   const updateGroupName = () => {
+    if (groupNameUpdatedValue === groupName) 
+      return toast.error("Group name is same as before");
+
+    update('Updating Group Name...', { chatId, name: groupNameUpdatedValue });
     setIsEdit(false);
-    console.log("Updating group name to", groupNameUpdatedValue);
   };
 
   const openConfirmDeleteHandler = () => {
@@ -67,16 +101,17 @@ function Group() {
   };
 
   const openAddMemberHandler = () => {
-    console.log("Opening Add Member Dialog");
+    dispatch(setIsAddMember(true));
   };
 
   const deleteHandler = () => {
-    console.log("Deleting group", chatId);
+    deleteGroup('Deleting Group...', chatId);
     closeConfirmDeleteHandler();
+    navigate('/group');
   };
 
   const removeMemberHandler = (userId) => {
-    console.log("Removing member", userId, "from group", chatId);
+    remove('Removing Member...', { chatId, userId });
   };
 
   useEffect(() => {
@@ -176,7 +211,7 @@ function Group() {
             value={groupNameUpdatedValue}
             onChange={(e) => setGroupNameUpdatedValue(e.target.value)}
           />
-          <IconButton onClick={updateGroupName}>
+          <IconButton onClick={updateGroupName} disabled={isLoadingUpdate}>
             <DoneIcon />
           </IconButton>
         </>
@@ -189,7 +224,8 @@ function Group() {
             <EditIcon />
           </IconButton>
         </>
-      )}
+      )
+    }
     </Stack>
   );
 
@@ -207,7 +243,7 @@ function Group() {
         }}
         sm={4}
       >
-        <GroupsList myGroups={sampleChats} chatId={chatId} />
+        <GroupsList myGroups={data?.data} chatId={chatId} />
       </Grid>
 
       <Grid
@@ -251,7 +287,10 @@ function Group() {
               {/* Members */}
 
               {
-                sampleUsers.map((i) => (
+                isLoadingRemoving ? (
+                  <CircularProgress />
+                ) : (
+                members.map((i) => (
                   <UserItem
                     user={i}
                     key={i._id}
@@ -264,6 +303,7 @@ function Group() {
                     handler={removeMemberHandler}
                   />
                 ))
+              )
               }
             </Stack>
 

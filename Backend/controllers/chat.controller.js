@@ -248,8 +248,8 @@ const removeMember = TryCatch(async (req, res, next) => {
         return next(new ErrorHandler('You cannot remove yourself', 400));
     if (!chat.members.includes(userId))
         return next(new ErrorHandler('User not in the group', 400));
-    if (chat.members.length < 3)
-        return next(new ErrorHandler('Group must have at least 2 members', 400));
+    if (chat.members.length < 4)
+        return next(new ErrorHandler('Group must have at least 3 members', 400));
     const allMembers = chat.members.map(member => member.toString());   //Getting all the id's of the members because later we will fetch chats for all members
     chat.members = chat.members.filter(member => member.toString() !== userId);
     await chat.save();
@@ -350,17 +350,10 @@ const sendAttachements = TryCatch(async (req, res, next) => {
 const getChatDetails = TryCatch(async (req, res, next) => {
     if (req.query.populate === "true") {
         const chat = await Chat.findById(req.params.chatId)
-            .populate("members", "name avatar")
+            .populate("members", "username avatar_url")
             .lean();
 
         if (!chat) return next(new ErrorHandler("Chat not found", 404));
-
-        chat.members = chat.members.map(({ _id, name, avatar }) => ({
-            _id,
-            name,
-            avatar: avatar.url,
-        }));
-
         return res.status(200).json({
             success: true,
             chat,

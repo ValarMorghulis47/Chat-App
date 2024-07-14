@@ -71,7 +71,7 @@ const NewGroup = () => {
             isLoading ? ( <Skeleton /> ) : (
             data?.friends?.map((i) => (
               <UserItem
-                user={i}
+                user={i.onemore}
                 key={i.onemore._id}
                 handler={selectMemberHandler}
                 isAdded={selectedMembers.includes(i.onemore._id)}

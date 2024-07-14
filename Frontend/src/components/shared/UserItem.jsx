@@ -10,7 +10,7 @@ const UserItem = ({
     isAdded = false,
     styling = {}
 }) => {
-    const { username, _id, avatar_url } = user.onemore;
+    const { username, _id, avatar_url } = user;
     return (
         <ListItem>
             <Stack

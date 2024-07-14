@@ -1,18 +1,18 @@
+import { Drawer, Grid, Skeleton } from "@mui/material";
 import React, { useCallback, useEffect } from 'react';
-import Title from '../shared/Title';
-import Header from './Header';
-import { Grid, Skeleton, Drawer } from "@mui/material";
-import ChatList from '../specific/ChatList';
-import { useParams } from 'react-router-dom';
-import Profile from '../specific/Profile';
 import { useDispatch, useSelector } from 'react-redux';
-import { useGetMyChatsQuery } from '../../redux/api/api';
-import { setIsMobile, setIsNotification } from '../../redux/reducers/misc';
-import { useErrors, useSocketEvents } from '../../hooks/hook';
-import { getSocket } from '../../socket';
+import { useParams } from 'react-router-dom';
 import { NEW_MESSAGE_ALERT, NEW_REQUEST } from '../../constants/events';
-import { incrementNotification, setNewMessagesAlert } from '../../redux/reducers/chat';
+import { useErrors, useSocketEvents } from '../../hooks/hook';
 import { getOrSaveFromStorage } from '../../lib/features';
+import { useGetMyChatsQuery } from '../../redux/api/api';
+import { incrementNotification, setNewMessagesAlert } from '../../redux/reducers/chat';
+import { setIsMobile } from '../../redux/reducers/misc';
+import { getSocket } from '../../socket';
+import Title from '../shared/Title';
+import ChatList from '../specific/ChatList';
+import Profile from '../specific/Profile';
+import Header from './Header';
 
 const AppLayout = () => (WrappedComponent) => {
     return (props) => {
@@ -51,7 +51,7 @@ const AppLayout = () => (WrappedComponent) => {
             dispatch(setNewMessagesAlert(data));
         }, [chatId]);
 
-        const newRequestListener = useCallback(() => {
+        const newRequestListener = useCallback((data) => {
             dispatch(incrementNotification());
         }, []);
 

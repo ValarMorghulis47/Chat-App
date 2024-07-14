@@ -9,11 +9,20 @@ import {
   Typography,
 } from "@mui/material";
 import React, { useState } from "react";
-import { sampleUsers } from "../../constants/sampleData";
+import { useDispatch, useSelector } from "react-redux";
 import UserItem from "../shared/UserItem";
+import { useGetAvailableFriendsQuery, useNewGroupMutation } from '../../redux/api/api';
+import { useAsyncMutation, useErrors } from '../../hooks/hook';
+import { setIsNewGroup } from "../../redux/reducers/misc";
+import toast from "react-hot-toast";
 
 const NewGroup = () => {
 
+  const dispatch = useDispatch();
+  const { isNewGroup } = useSelector((state) => state.misc);
+
+  const {isError, error, isLoading, data} = useGetAvailableFriendsQuery();
+  const [newGroup, isLoadingNewGroup] = useAsyncMutation(useNewGroupMutation);
   const groupName = useInputValidation("");
 
   const [selectedMembers, setSelectedMembers] = useState([]);
@@ -26,16 +35,24 @@ const NewGroup = () => {
     );
   };
 
+  useErrors([{isError, error}]);
+
   const submitHandler = () => {
-    console.log("Submit Handler called");
+    if (groupName.value === "") 
+      return toast.error("Group name is required");
+    if (selectedMembers.length < 2)
+      return toast.error("Group must have at least 3 members");
+
+    newGroup("Creating Group...", {name: groupName.value, members: selectedMembers});
+    closeHandler();
   };
 
   const closeHandler = () => {
-    console.log("Close Handler called");
+    dispatch(setIsNewGroup(false));
   };
 
   return (
-    <Dialog onClose={closeHandler} open>
+    <Dialog onClose={closeHandler} open={isNewGroup}>
       <Stack p={{ xs: "1rem", sm: "3rem" }} width={"25rem"} spacing={"2rem"}>
         <DialogTitle textAlign={"center"} variant="h4">
           New Group
@@ -51,14 +68,16 @@ const NewGroup = () => {
 
         <Stack>
           {
-            sampleUsers?.map((i) => (
+            isLoading ? ( <Skeleton /> ) : (
+            data?.friends?.map((i) => (
               <UserItem
                 user={i}
-                key={i._id}
+                key={i.onemore._id}
                 handler={selectMemberHandler}
-                isAdded={selectedMembers.includes(i._id)}
+                isAdded={selectedMembers.includes(i.onemore._id)}
               />
             ))
+          )
           }
         </Stack>
 
@@ -68,6 +87,7 @@ const NewGroup = () => {
             color="error"
             size="large"
             onClick={closeHandler}
+            disabled={isLoadingNewGroup}
           >
             Cancel
           </Button>
@@ -75,7 +95,7 @@ const NewGroup = () => {
             variant="contained"
             size="large"
             onClick={submitHandler}
-            // disabled={isLoadingNewGroup}
+            disabled={isLoadingNewGroup}
           >
             Create
           </Button>

@@ -12,7 +12,6 @@ const MessageComponent = ({ message, user }) => {
     const sameSender = sender?._id === user?._id;
 
     const timeAgo = moment(createdAt).fromNow();
-
     return (
         <div
             //   initial={{ opacity: 0, x: "-100%" }}
@@ -28,7 +27,7 @@ const MessageComponent = ({ message, user }) => {
         >
             {!sameSender && (
                 <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <Avatar src={sender.avatar_url} style={{ width: '40px', height: '40px', borderRadius: '50%', marginRight: '10px' }} />
+                    <Avatar src={sender.avatar_url} style={{ width: '30px', height: '30px', borderRadius: '50%', marginRight: '10px' }} />
                     <Typography color={lightBlue} fontWeight={"600"} variant="caption">
                         {sender.username}
                     </Typography>

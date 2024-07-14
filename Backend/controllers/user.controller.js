@@ -109,7 +109,7 @@ const sendFriendRequest = TryCatch(async (req, res, next) => {
     if (!newRequest)
         return next(new ErrorHandler("Request not sent", 400));
 
-    emitEvent(req, NEW_REQUEST, [receiverId]);
+    emitEvent(req, NEW_REQUEST, [receiverId], receiverId);
 
     return res.status(200).
         json({

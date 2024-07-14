@@ -113,22 +113,33 @@ const getMyChats = TryCatch(async (req, res, next) => {
                     },
                 },
                 name: {
-                    $map: {
-                        input: {
-                            $filter: {
-                                input: "$Details",
-                                as: "ind",
-                                cond: {
-                                    $ne: [
-                                        "$$ind.username",
-                                        req.user.username,
-                                    ],
+                    $cond: {
+                        if: "$groupChat",
+                        then: "$name", // Assuming the group name is stored in the 'name' field
+                        else: {
+                            $arrayElemAt: [
+                                {
+                                    $map: {
+                                        input: {
+                                            $filter: {
+                                                input: "$Details",
+                                                as: "ind",
+                                                cond: {
+                                                    $ne: [
+                                                        "$$ind.username",
+                                                        req.user.username,
+                                                    ],
+                                                },
+                                            },
+                                        },
+                                        as: 'obj',
+                                        in: "$$obj.username",
+                                    },
                                 },
-                            },
-                        },
-                        as: 'obj',
-                        in: "$$obj.username",
-                    },
+                                0
+                            ]
+                        }
+                    }
                 }
             },
         },
@@ -447,7 +458,7 @@ const getMessages = TryCatch(async (req, res, next) => {
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(resultPerPage)
-            .populate("sender", "name avatar_url")
+            .populate("sender", "username avatar_url")
             .lean(),
         Message.countDocuments({ chat: chatId }),
     ]);

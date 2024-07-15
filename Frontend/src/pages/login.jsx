@@ -65,7 +65,7 @@ function login() {
 
     const handleLogin = (e) => {
         e.preventDefault();
-
+        const toastId = toast.loading("Logging in...");
         setIsLoading(true);
 
         const configOption = {
@@ -78,13 +78,19 @@ function login() {
         axios.post('/api/v1/user/login', {
             email: email.value,
             password: password.value,
-        }, configOption).then(({data}) => {toast.success(data.message); dispatch(userExists(data.user))}).catch((err) => toast.error(err.response.data.message)).finally(() => setIsLoading(false));
+        }, configOption).then(({ data }) => {
+            toast.success(data.message, {
+                id: toastId
+            }); dispatch(userExists(data.user))
+        }).catch((err) => toast.error(err.response.data.message, {
+            id: toastId
+        })).finally(() => setIsLoading(false));
 
     };
 
     async function handleSignUp(e) {
         e.preventDefault();
-
+        const toastId = toast.loading("Signing up...");
         setIsLoading(true);
 
         const formData = new FormData();
@@ -104,9 +110,13 @@ function login() {
         try {
             const { data } = await axios.post("/api/v1/user/register", formData, configOption);
             dispatch(userExists(data.user));
-            toast.success(data.message);
+            toast.success(data.message, {
+                id: toastId,
+            });
         } catch (error) {
-            toast.error(error.response.data.message);
+            toast.error(error.response.data.message, {
+                id: toastId,
+            });
         } finally {
             setIsLoading(false);
         }
@@ -145,9 +155,9 @@ function login() {
                                     value={password.value}
                                     onChange={password.changeHandler}
                                 />
-                                <Button type="submit" variant="contained" color="primary" fullWidth sx={{ marginTop: "1rem" }} disabled= {isLoading}>Login</Button>
+                                <Button type="submit" variant="contained" color="primary" fullWidth sx={{ marginTop: "1rem" }} disabled={isLoading}>Login</Button>
                                 <Typography textAlign={"center"} margin={"1rem"}>OR</Typography>
-                                <Button variant="text" fullWidth onClick={() => setIsLoggedIn(false)}>Sign Up Instead</Button>
+                                <Button variant="text" fullWidth onClick={() => setIsLoggedIn(false)} disabled={isLoading}>Sign Up Instead</Button>
                             </form>
                         </>
                     ) : (
@@ -240,7 +250,7 @@ function login() {
 
                                 <Button type="submit" variant="contained" color="primary" fullWidth sx={{ marginTop: "1rem" }} disabled={isLoading}>Sign Up</Button>
                                 <Typography textAlign={"center"} margin={"1rem"}>OR</Typography>
-                                <Button variant="text" fullWidth onClick={() => setIsLoggedIn(true)}>Login</Button>
+                                <Button variant="text" fullWidth onClick={() => setIsLoggedIn(true)} disabled={isLoading}>Login</Button>
                             </form>
                         </>
                     )}

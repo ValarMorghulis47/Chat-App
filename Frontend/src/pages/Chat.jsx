@@ -97,8 +97,8 @@ const Chat = ({ chatId, user }) => {
   };
 
   useEffect(() => {
-    if (!chatDetails?.data?.chat) return navigate('/');
-  }, [chatDetails.data]);
+    if (chatDetails.isError) return navigate('/');
+  }, [chatDetails.isError]);
 
   useEffect(() => {
 

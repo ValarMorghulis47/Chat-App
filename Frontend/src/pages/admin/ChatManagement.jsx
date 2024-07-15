@@ -1,13 +1,13 @@
 
-import { useFetchData } from "6pp";
 import { Avatar, Skeleton, Stack } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import AdminLayout from "../../components/layout/AdminLayout";
 import AvatarCard from "../../components/shared/AvatarCard";
 import Table from "../../components/shared/Table";
-import { transformImage } from "../../lib/features";
-import { dashboardData } from "../../constants/sampleData";
 import Title from "../../components/shared/Title";
+import { useErrors } from "../../hooks/hook";
+import { transformImage } from "../../lib/features";
+import { useGetAllChatsQuery } from "../../redux/api/api";
 
 const columns = [
     {
@@ -43,7 +43,7 @@ const columns = [
         ),
     },
     {
-        field: "totalMembers",
+        field: "TotalMembers",
         headerName: "Total Members",
         headerClassName: "table-header",
         width: 120,
@@ -58,47 +58,52 @@ const columns = [
         ),
     },
     {
-        field: "totalMessages",
+        field: "TotalMessages",
         headerName: "Total Messages",
         headerClassName: "table-header",
         width: 120,
     },
     {
-        field: "creator",
+        field: "CreatorDetails",
         headerName: "Created By",
         headerClassName: "table-header",
         width: 250,
         renderCell: (params) => (
             <Stack direction="row" alignItems="center" spacing={"1rem"}>
-                <Avatar alt={params.row.creator.name} src={params.row.creator.avatar} />
-                <span>{params.row.creator.name}</span>
+                <Avatar alt={params.row.CreatorDetails.username} src={params.row.CreatorDetails.avatar_url} />
+                <span>{params.row.CreatorDetails.username}</span>
             </Stack>
         ),
     },
 ];
 
 const ChatManagement = () => {
+    const { data, isError, error, isLoading } = useGetAllChatsQuery();
+    useErrors([{ isError, error }]);
     const [rows, setRows] = useState([]);
 
     useEffect(() => {
-        setRows(
-            dashboardData.chats.map((i) => ({
-                ...i,
-                id: i._id,
-                avatar: i.avatar.map((i) => transformImage(i, 50)),
-                members: i.members.map((i) => transformImage(i.avatar, 50)),
-                creator: {
-                    name: i.creator.name,
-                    avatar: transformImage(i.creator.avatar, 50),
-                },
-            }))
-        );
-    }, [dashboardData.chats]);
+        if (data) {
+            setRows(
+                data.data.map((i, index) => ({
+                    ...i,
+                    id: index + 1,
+                    avatar: i.avatars.map((i) => transformImage(i, 50)),
+                    members: i.MemberDetails.map((i) => transformImage(i.avatar_url, 50)),
+                }))
+            );
+        }
+    }, [data?.data]);
 
     return (
         <AdminLayout>
             <Title title="Chat Management" />
-            <Table heading={"All Chats"} columns={columns} rows={rows} />
+            {isLoading ? (
+                <Skeleton height={"100vh"} />
+            ) : (
+                <Table heading={"All Chats"} columns={columns} rows={rows} />
+            )
+            }
         </AdminLayout>
     );
 };

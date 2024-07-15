@@ -1,13 +1,14 @@
-import { useFetchData } from "6pp";
-import { Avatar, Box, Stack } from "@mui/material";
+import { Avatar, Box, Skeleton, Stack } from "@mui/material";
 import moment from "moment";
 import React, { useEffect, useState } from "react";
 import AdminLayout from "../../components/layout/AdminLayout";
 import RenderAttachment from "../../components/shared/RenderAttachement";
 import Table from "../../components/shared/Table";
-import { fileFormat, transformImage } from "../../lib/features";
-import { dashboardData } from "../../constants/sampleData";
 import Title from "../../components/shared/Title";
+import { dashboardData } from "../../constants/sampleData";
+import { useErrors } from "../../hooks/hook";
+import { fileFormat, transformImage } from "../../lib/features";
+import { useGetAllMessagesQuery } from "../../redux/api/api";
 
 const columns = [
     {
@@ -87,32 +88,43 @@ const columns = [
 ];
 
 const MessageManagement = () => {
-
+    const { data, isError, error, isLoading } = useGetAllMessagesQuery();
+    useErrors([{ isError, error }]);
+    console.log(data);
     const [rows, setRows] = useState([]);
 
     useEffect(() => {
-        setRows(
-            dashboardData.messages.map((i) => ({
-                ...i,
-                id: i._id,
-                sender: {
-                    name: i.sender.name,
-                    avatar: transformImage(i.sender.avatar, 50),
-                },
-                createdAt: moment(i.createdAt).format("MMMM Do YYYY, h:mm:ss a"),
-            }))
-        );
-    }, [dashboardData.messages]);
+        if (data) {
+            setRows(
+                dashboardData.messages.map((i) => ({
+                    ...i,
+                    id: i._id,
+                    sender: {
+                        name: i.sender.name,
+                        avatar: transformImage(i.sender.avatar, 50),
+                    },
+                    createdAt: moment(i.createdAt).format("MMMM Do YYYY, h:mm:ss a"),
+                }))
+            );
+        }
+        
+    }, [data?.data]);
 
     return (
         <AdminLayout>
             <Title title={"Message Management"} />
-            <Table
-                heading={"All Messages"}
-                columns={columns}
-                rows={rows}
-                rowHeight={200}
-            />
+            {
+                isLoading ? (
+                    <Skeleton height={100} />
+                ) : (
+                    <Table
+                        heading={"All Messages"}
+                        columns={columns}
+                        rows={rows}
+                        rowHeight={200}
+                    />
+                )
+            }
         </AdminLayout>
     );
 };

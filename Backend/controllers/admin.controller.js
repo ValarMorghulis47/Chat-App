@@ -116,7 +116,13 @@ const getAllChats = TryCatch(async (req, res, next) => {
     {
       $addFields: {
         TotalMessages: { $size: "$TotalMessages" },
-        CreatorDetails: { $arrayElemAt: ["$CreatorData", 0] },
+        CreatorDetails: {
+          $cond: {
+            if: { $eq: ["$groupChat", true] },
+            then: { $arrayElemAt: ["$CreatorData", 0] },
+            else: {}
+          }
+        },
         TotalMembers: { $size: "$MemberDetails" }
       },
     },
@@ -141,6 +147,35 @@ const getAllChats = TryCatch(async (req, res, next) => {
       success: true,
       data: chats
     });
+
+  // const chats = await Chat.find({})
+  //   .populate("members", "username avatar_url")
+  //   .populate("creator", "username avatar_url");
+
+  // const transformedChats = await Promise.all(
+  //   chats.map(async ({ members, _id, groupChat, username, creator }) => {
+  //     const totalMessages = await Message.countDocuments({ chat: _id });
+
+  //     return {
+  //       _id,
+  //       groupChat,
+  //       username,
+  //       avatar: members.slice(0, 3).map((member) => member.avatar_url),
+  //       members,
+  //       creator: {
+  //         username: creator?.username || "None",
+  //         avatar_url: creator?.avatar_url || "",
+  //       },
+  //       totalMembers: members.length,
+  //       totalMessages,
+  //     };
+  //   })
+  // );
+
+  // return res.status(200).json({
+  //   status: "success",
+  //   chats: transformedChats,
+  // });
 });
 
 const getAllMessages = TryCatch(async (req, res, next) => {

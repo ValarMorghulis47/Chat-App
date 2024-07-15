@@ -24,9 +24,13 @@ import {
 } from "../../components/styles/StyledComponents";
 import { matBlack } from "../../constants/color";
 import Title from "../../components/shared/Title";
+import { useGetDashboardStatsQuery } from "../../redux/api/api";
+import { useErrors } from '../../hooks/hook';
 
 const Dashboard = () => {
-  const stats = [2,4,20,43];
+
+  const { isError, error, data, isLoading } = useGetDashboardStatsQuery();
+  useErrors([{isError, error}]);
 
   const Appbar = (
     <Paper
@@ -67,15 +71,15 @@ const Dashboard = () => {
       alignItems={"center"}
       margin={"2rem 0"}
     >
-      <Widget title={"Users"} value={13} Icon={<PersonIcon />} />
+      <Widget title={"Users"} value={data?.data?.usersCount} Icon={<PersonIcon />} />
       <Widget
         title={"Chats"}
-        value={40}
+        value={data?.data?.totalChatsCount}
         Icon={<GroupIcon />}
       />
       <Widget
         title={"Messages"}
-        value={60}
+        value={data?.data?.messagesCount}
         Icon={<MessageIcon />}
       />
     </Stack>
@@ -83,7 +87,9 @@ const Dashboard = () => {
 
   return (
     <AdminLayout>
-      {
+      { isLoading ? (
+        <Skeleton height={"100vh"} />
+      ) : (
         <Container component={"main"}>
           <Title title={"Dashboard"} />
           {Appbar}
@@ -114,7 +120,7 @@ const Dashboard = () => {
                 Last Messages
               </Typography>
 
-              <LineChart value={stats || []} />
+              <LineChart value={data?.data?.messagesChart || []} />
             </Paper>
 
             <Paper
@@ -133,8 +139,8 @@ const Dashboard = () => {
               <DoughnutChart
                 labels={["Single Chats", "Group Chats"]}
                 value={[
-                  12 || 0,
-                  50 || 0,
+                  data?.data?.totalChatsCount - data?.data?.groupsCount || 0,
+                  data?.data?.groupsCount || 0,
                 ]}
               />
 
@@ -155,6 +161,7 @@ const Dashboard = () => {
 
           {Widgets}
         </Container>
+      )
       }
     </AdminLayout>
   );

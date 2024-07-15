@@ -1,11 +1,11 @@
-import { useFetchData } from "6pp";
 import { Avatar, Skeleton } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import AdminLayout from "../../components/layout/AdminLayout";
 import Table from "../../components/shared/Table";
-import { transformImage } from "../../lib/features";
-import { dashboardData } from "../../constants/sampleData";
 import Title from "../../components/shared/Title";
+import { useErrors } from "../../hooks/hook";
+import { transformImage } from "../../lib/features";
+import { useGetAllUsersQuery } from "../../redux/api/api";
 
 const columns = [
     {
@@ -25,25 +25,25 @@ const columns = [
     },
 
     {
-        field: "name",
+        field: "username",
         headerName: "Name",
         headerClassName: "table-header",
         width: 200,
     },
     {
-        field: "username",
-        headerName: "Username",
+        field: "email",
+        headerName: "Email",
         headerClassName: "table-header",
         width: 200,
     },
     {
-        field: "friends",
+        field: "totalFriends",
         headerName: "Friends",
         headerClassName: "table-header",
         width: 150,
     },
     {
-        field: "groups",
+        field: "totalGroups",
         headerName: "Groups",
         headerClassName: "table-header",
         width: 200,
@@ -59,23 +59,35 @@ const columns = [
     },
 ];
 const UserManagement = () => {
-
+    const { data, isError, error, isLoading } = useGetAllUsersQuery();
+    useErrors([{ isError, error }]);
     const [rows, setRows] = useState([]);
 
     useEffect(() => {
-        setRows(
-            dashboardData.users.map((i) => ({
-                ...i,
-                id: i._id,
-                avatar: transformImage(i.avatar, 50),
-            }))
-        );
-    }, [dashboardData.users]);
+        if (data) {
+            setRows(
+                data?.data.map((i, index) => ({
+                    username: i.user.username,
+                    email: i.user.email,
+                    createdAt: i.user.createdAt,
+                    id: index + 1,
+                    avatar: transformImage(i.user.avatar_url, 50),
+                    ...i
+                }))
+            );
+        }
+    }, [data?.data]);
 
     return (
         <AdminLayout>
             <Title title={"User Management"} />
-            <Table heading={"All Users"} columns={columns} rows={rows} />
+            {
+                isLoading ? (
+                    <Skeleton height={"100vh"} />
+                ) : (
+                    <Table heading={"All Users"} columns={columns} rows={rows} />
+                )
+            }
         </AdminLayout>
     );
 };

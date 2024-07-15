@@ -1,4 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { getAllMessages } from '../../../../Backend/controllers/admin.controller';
 
 
 const api = createApi({
@@ -157,6 +158,34 @@ const api = createApi({
             }),
             invalidatesTags: ['Chat']
         }),
+
+        getDashboardStats: builder.query({
+            query: () => ({
+                url: 'admin/getDashboard',
+                credentials: 'include'
+            }),
+        }),
+
+        getAllChats: builder.query({
+            query: () => ({
+                url: 'admin/getChats',
+                credentials: 'include'
+            }),
+        }),
+
+        getAllUsers: builder.query({
+            query: () => ({
+                url: 'admin/getUsers',
+                credentials: 'include'
+            }),
+        }),
+
+        getAllMessages: builder.query({
+            query: () => ({
+                url: 'admin/getMessages',
+                credentials: 'include'
+            }),
+        }),
     })
 })
 
@@ -177,5 +206,9 @@ export const {
     useRemoveMemberMutation,
     useAddMembersMutation,
     useDeleteGroupMutation,
-    useLeaveGroupMutation
+    useLeaveGroupMutation,
+    useGetDashboardStatsQuery,
+    useGetAllChatsQuery,
+    useGetAllUsersQuery,
+    useGetAllMessagesQuery,
 } = api;

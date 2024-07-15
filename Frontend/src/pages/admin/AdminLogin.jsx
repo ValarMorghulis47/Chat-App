@@ -10,15 +10,22 @@ import React, { useEffect } from "react";
 import { bgGradient } from '../../constants/color';
 import { Navigate } from "react-router-dom";
 import Title from "../../components/shared/Title";
+import { useDispatch, useSelector } from "react-redux";
+import { adminLogin, getAdmin } from "../../redux/thunks/Admin";
 
 const AdminLogin = () => {
-    const isAdmin = true;
     const secretKey = useInputValidation();
+    const dispatch = useDispatch();
+    const { isAdmin } = useSelector((state) => state.auth);
 
     const submitHandler = (e) => {
         e.preventDefault();
-        console.log(secretKey.value);
+        dispatch(adminLogin(secretKey.value));
     };
+
+    useEffect(() => {
+        dispatch(getAdmin());
+    }, [dispatch]);
 
     if (isAdmin) {
         return <Navigate to="/admin/dashboard" />;

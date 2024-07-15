@@ -1,7 +1,7 @@
 import { TryCatch } from '../middlewares/error.middleware.js';
 import { Chat } from '../models/chat.model.js';
 import { ErrorHandler } from "../utils/utility.js";
-import { UploadFilesCloudinary, emitEvent } from '../utils/features.js';
+import { DeleteFilesCloudinary, UploadFilesCloudinary, emitEvent } from '../utils/features.js';
 import { ALERT, NEW_MESSAGE, NEW_MESSAGE_ALERT, REFETCH_CHATS } from '../constants/events.js';
 import { User } from '../models/user.model.js';
 import { Message } from '../models/message.model.js';
@@ -265,7 +265,7 @@ const removeMember = TryCatch(async (req, res, next) => {
 });
 
 const leaveGroup = TryCatch(async (req, res, next) => {
-    const { chatId } = req.body;
+    const { chatId } = req.params;
     const chat = await Chat.findById(chatId);
 
     if (!chat)
@@ -396,11 +396,10 @@ const renameGroup = TryCatch(async (req, res, next) => {
 
 const deleteGroup = TryCatch(async (req, res, next) => {
     const { chatId } = req.params;
-
     const chat = await Chat.findById(chatId);
     if (!chat)
         return next(new ErrorHandler('Chat not found', 404));
-    if (chat.creator.toString() !== req.user._id.toString())
+    if (chat.groupChat && chat.creator.toString() !== req.user._id.toString())
         return next(new ErrorHandler('You are not authorized to delete the group', 403));
 
     const memmbers = chat.members;
@@ -417,7 +416,7 @@ const deleteGroup = TryCatch(async (req, res, next) => {
     });
 
     await Promise.all([
-        // deleteFilesCloudinary(public_ids),  // we will make this function later
+        DeleteFilesCloudinary(public_ids),  // we will make this function later
         chat.deleteOne(),
         Message.deleteMany({ chat: chatId })
     ])
@@ -426,7 +425,7 @@ const deleteGroup = TryCatch(async (req, res, next) => {
 
     return res.status(200).json({
         success: true,
-        message: "Group deleted successfully"
+        message: "Chat deleted successfully"
     });
 });
 

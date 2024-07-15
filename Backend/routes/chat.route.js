@@ -13,7 +13,7 @@ app.get('/myChats', getMyChats);
 app.get('/myGroups', getMyGroups);
 app.put('/add',addMemberValidator(), validateHandler, addMembers);
 app.delete('/remove',removeMemberValidator(), validateHandler,  removeMember);
-app.put('/leave',leaveGroupValidator(), validateHandler,  leaveGroup);
+app.put('/leave/:chatId',leaveGroupValidator(), validateHandler,  leaveGroup);
 app.post('/sendAttachement', multipleUpload, sendAttachmentsValidator(), validateHandler , sendAttachements);
 app.get('/chatDetails/:chatId', chatIdValidator(), validateHandler,  getChatDetails);
 app.put('/renameGroup/:chatId', renameValidator(), validateHandler,  renameGroup);

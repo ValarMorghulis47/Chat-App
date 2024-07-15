@@ -49,7 +49,7 @@ const removeMemberValidator = () => [
 ];
 
 const leaveGroupValidator = () => [
-    body("chatId", "Please Enter Chat ID").notEmpty(),
+    param("chatId", "Please Enter Chat ID").notEmpty(),
 ];
 
 const sendAttachmentsValidator = () => [

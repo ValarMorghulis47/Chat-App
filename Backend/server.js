@@ -9,7 +9,7 @@ import chatRouter from './routes/chat.route.js';
 import adminRouter from './routes/admin.route.js';
 import { errorMiddleware } from './middlewares/error.middleware.js';
 import { Server } from 'socket.io';
-import { NEW_MESSAGE, NEW_MESSAGE_ALERT, START_TYPING, STOP_TYPING } from './constants/events.js';
+import { CHAT_JOINED, CHAT_LEAVED, NEW_MESSAGE, NEW_MESSAGE_ALERT, ONLINE_USERS, START_TYPING, STOP_TYPING } from './constants/events.js';
 import { v2 as cloudinary } from 'cloudinary';
 import { v4 as uuid } from 'uuid';
 import { getSockets } from './lib/helper.js';
@@ -17,6 +17,7 @@ import { Message } from './models/message.model.js';
 import { socketAuth } from './middlewares/auth.middleware.js';
 // import { createMessagesInAChat, createSingleChats } from './seeders/chat.seeders.js';
 const userSocketIDs = new Map();  // This will contain the socket id of the user and the user id
+const onlineUsers = new Set();
 
 
 dotenv.config({
@@ -105,10 +106,20 @@ io.on('connection', (socket) => {
         socket.to(membersSockets).emit(STOP_TYPING, { chatId });
     });
 
+    socket.on(CHAT_JOINED, ({userId}) => {
+        onlineUsers.add(userId.toString());
+        io.emit(ONLINE_USERS, Array.from(onlineUsers));
+    });
+
+    socket.on(CHAT_LEAVED, ({userId}) => {
+        onlineUsers.delete(userId.toString());
+        io.emit(ONLINE_USERS, Array.from(onlineUsers));
+    });
 
     socket.on('disconnect', () => {
         userSocketIDs.delete(user._id.toString());
-        console.log('user disconnected', socket.id);
+        onlineUsers.delete(user._id.toString());
+        socket.broadcast.emit(ONLINE_USERS, Array.from(onlineUsers));
     });
 });
 

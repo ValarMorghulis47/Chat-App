@@ -42,7 +42,7 @@ const AppLayout = () => (WrappedComponent) => {
 
         useEffect(() => {
             socket.emit(CHAT_JOINED, {userId: user._id});
-
+            refetch();
             return () => {
                 socket.emit(CHAT_LEAVED, {userId: user._id});
             };
@@ -69,7 +69,6 @@ const AppLayout = () => (WrappedComponent) => {
         }, []);
 
         const onlineUsersListener = useCallback((data) => {
-            console.log(data);
             setOnlineUsers(data);
         }, []);
 

@@ -1,6 +1,4 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-import { getAllMessages } from '../../../../Backend/controllers/admin.controller';
-
 
 const api = createApi({
     reducerPath: 'api',  // name of the slice just like we do in createSlice

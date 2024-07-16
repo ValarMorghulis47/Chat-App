@@ -18,15 +18,15 @@ const columns = [
         width: 200,
     },
     {
-        field: "attachments",
+        field: "Attachments",
         headerName: "Attachments",
         headerClassName: "table-header",
         width: 200,
         renderCell: (params) => {
-            const { attachments } = params.row;
+            const { Attachments } = params.row;
 
-            return attachments?.length > 0
-                ? attachments.map((i) => {
+            return Attachments?.length > 0
+                ? Attachments.map((i) => {
                     const url = i.url;
                     const file = fileFormat(url);
 
@@ -54,6 +54,10 @@ const columns = [
         headerName: "Content",
         headerClassName: "table-header",
         width: 400,
+        renderCell: (params) => {
+            const content = params.row.content;
+            return content ? content : "No Content";
+        },
     },
     {
         field: "sender",
@@ -90,18 +94,19 @@ const columns = [
 const MessageManagement = () => {
     const { data, isError, error, isLoading } = useGetAllMessagesQuery();
     useErrors([{ isError, error }]);
-    console.log(data);
     const [rows, setRows] = useState([]);
 
     useEffect(() => {
         if (data) {
             setRows(
-                dashboardData.messages.map((i) => ({
+                data.data.map((i, index) => ({
                     ...i,
-                    id: i._id,
+                    id: index + 1,
+                    groupChat: i.ChatDetails.groupChat,
+                    chat: i.ChatDetails._id,
                     sender: {
-                        name: i.sender.name,
-                        avatar: transformImage(i.sender.avatar, 50),
+                        name: i.SenderDetails.username,
+                        avatar: transformImage(i.SenderDetails.avatar_url, 50),
                     },
                     createdAt: moment(i.createdAt).format("MMMM Do YYYY, h:mm:ss a"),
                 }))

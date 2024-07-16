@@ -1,4 +1,3 @@
-import { useFetchData } from "6pp";
 import {
   AdminPanelSettings as AdminPanelSettingsIcon,
   Group as GroupIcon,
@@ -17,15 +16,15 @@ import {
 import moment from "moment";
 import React from "react";
 import AdminLayout from "../../components/layout/AdminLayout";
+import Title from "../../components/shared/Title";
 import { DoughnutChart, LineChart } from "../../components/specific/Charts";
 import {
   CurveButton,
   SearchField,
 } from "../../components/styles/StyledComponents";
 import { matBlack } from "../../constants/color";
-import Title from "../../components/shared/Title";
-import { useGetDashboardStatsQuery } from "../../redux/api/api";
 import { useErrors } from '../../hooks/hook';
+import { useGetDashboardStatsQuery } from "../../redux/api/api";
 
 const Dashboard = () => {
 

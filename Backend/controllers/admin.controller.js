@@ -222,9 +222,7 @@ const getAllMessages = TryCatch(async (req, res, next) => {
         SenderDetails: {
           $arrayElemAt: ["$details", 0]
         },
-        Attachments: {
-          $arrayElemAt: ["$attachments", 0]
-        }
+        Attachments: "$attachments"
       }
     },
     {
